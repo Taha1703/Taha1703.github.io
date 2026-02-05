@@ -3,253 +3,327 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Taha Atlagh | Quantitative Mathematics</title>
+    <title>root@taha:~/quant-portfolio</title>
     <style>
         :root {
-            --bg-color: #ffffff;
-            --text-color: #1a1a1a;
-            --accent-color: #0056b3; /* Serious academic blue */
-            --secondary-text: #666;
-            --font-main: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-            --font-mono: 'Courier New', Courier, monospace;
+            --bg-color: #0d1117;
+            --term-header: #161b22;
+            --text-main: #c9d1d9;
+            --accent: #58a6ff; /* Science Blue */
+            --green: #3fb950;
+            --purple: #d2a8ff;
+            --glass: rgba(22, 27, 34, 0.75);
         }
 
         body {
-            font-family: var(--font-main);
-            line-height: 1.6;
-            color: var(--text-color);
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 40px 20px;
+            margin: 0;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+            overflow-x: hidden;
         }
 
-        /* Header Section */
-        header {
-            margin-bottom: 60px;
-            border-bottom: 1px solid #eee;
-            padding-bottom: 20px;
+        /* The Math Canvas Background */
+        canvas#math-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            opacity: 0.4; /* Subtle math in background */
         }
 
-        h1 {
-            font-size: 2.5rem;
-            margin-bottom: 0.2rem;
-            letter-spacing: -0.5px;
-        }
-
-        .subtitle {
-            font-size: 1.2rem;
-            color: var(--secondary-text);
-            font-weight: 300;
-        }
-
-        .social-links {
-            margin-top: 15px;
-        }
-
-        .social-links a {
-            margin-right: 15px;
-            text-decoration: none;
-            color: var(--accent-color);
-            font-family: var(--font-mono);
-            font-size: 0.9rem;
-        }
-
-        /* Section Styling */
-        section {
-            margin-bottom: 50px;
-        }
-
-        h2 {
-            font-size: 1.5rem;
-            border-bottom: 2px solid #f4f4f4;
-            padding-bottom: 10px;
-            margin-bottom: 20px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            font-size: 0.9rem;
-            color: var(--secondary-text);
-        }
-
-        p {
-            margin-bottom: 15px;
-        }
-
-        /* Project Grid */
-        .project-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 20px;
-        }
-
-        .project-card {
-            border: 1px solid #eee;
+        /* Container */
+        .container {
+            max-width: 900px;
+            margin: 5vh auto;
             padding: 20px;
-            border-radius: 4px;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            position: relative;
+            z-index: 1;
         }
 
-        .project-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
-            border-color: var(--accent-color);
+        /* Terminal Window Style */
+        .terminal-window {
+            background: var(--glass);
+            backdrop-filter: blur(10px);
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            overflow: hidden;
+            animation: fadeIn 1s ease-out;
         }
 
-        .project-title {
-            font-weight: bold;
-            margin-bottom: 8px;
-            display: block;
-            text-decoration: none;
-            color: var(--text-color);
+        .terminal-header {
+            background: var(--term-header);
+            padding: 10px 15px;
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid #30363d;
         }
 
-        .tags {
-            margin-top: 10px;
-            font-size: 0.75rem;
-            font-family: var(--font-mono);
-            color: var(--secondary-text);
+        .dots {
+            display: flex;
+            gap: 8px;
         }
+        .dot { width: 12px; height: 12px; border-radius: 50%; }
+        .red { background: #ff5f56; }
+        .yellow { background: #ffbd2e; }
+        .green { background: #27c93f; }
+
+        .title {
+            margin-left: 20px;
+            font-size: 0.85rem;
+            color: #8b949e;
+        }
+
+        .terminal-body {
+            padding: 30px;
+        }
+
+        /* Typography & Layout */
+        h1 { margin: 0; font-size: 1.8rem; color: var(--accent); }
+        h2 { 
+            font-size: 1.2rem; 
+            margin-top: 40px; 
+            border-bottom: 1px solid #30363d; 
+            padding-bottom: 5px;
+            color: var(--purple);
+        }
+        
+        .prompt { color: var(--green); margin-right: 10px; }
+        .cursor { animation: blink 1s step-end infinite; }
+        
+        a { color: var(--accent); text-decoration: none; border-bottom: 1px dashed var(--accent); transition: 0.2s; }
+        a:hover { background: rgba(88, 166, 255, 0.1); }
+
+        /* Grid for Projects */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .card {
+            border: 1px solid #30363d;
+            background: rgba(13, 17, 23, 0.6);
+            padding: 20px;
+            border-radius: 6px;
+            transition: 0.3s;
+        }
+        .card:hover { border-color: var(--accent); transform: translateY(-3px); }
 
         .tag {
-            background: #f4f4f4;
+            display: inline-block;
+            font-size: 0.75rem;
             padding: 2px 6px;
-            border-radius: 3px;
+            border: 1px solid #30363d;
+            border-radius: 4px;
+            color: #8b949e;
+            margin-top: 10px;
             margin-right: 5px;
         }
 
-        /* Resume/Timeline */
-        .timeline-item {
-            margin-bottom: 20px;
-        }
-        .timeline-header {
-            display: flex;
-            justify-content: space-between;
-            font-weight: bold;
-        }
-        .timeline-date {
-            font-family: var(--font-mono);
-            color: var(--secondary-text);
-            font-size: 0.9rem;
-        }
-
-        /* Math Styling */
-        code {
-            background: #f4f4f4;
-            padding: 2px 5px;
-            border-radius: 3px;
-            font-family: var(--font-mono);
-            font-size: 0.9em;
-        }
-
-        @media (max-width: 600px) {
-            h1 { font-size: 2rem; }
-            .project-grid { grid-template-columns: 1fr; }
+        @keyframes blink { 50% { opacity: 0; } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .math-block {
+            font-family: 'Times New Roman', serif;
+            font-style: italic;
+            color: #d2a8ff;
         }
     </style>
 </head>
 <body>
 
-    <header>
-        <h1>Taha Atlagh</h1>
-        <div class="subtitle">M.Sc. Mathematics Student @ TU Berlin | Stochastic Processes & Numerical Analysis</div>
-        <div class="social-links">
-            <a href="mailto:atlaghtaha@gmail.com">Email</a>
-            <a href="https://linkedin.com/in/taha-atlagh" target="_blank">LinkedIn</a>
-            <a href="https://github.com/Taha1703" target="_blank">GitHub</a>
-            <a href="./cv_taha_atlagh.pdf" target="_blank">Resume (PDF)</a>
-        </div>
-    </header>
+    <canvas id="math-canvas"></canvas>
 
-    <section id="about">
-        <h2>About Me</h2>
-        <p>
-            I am a Master’s student in Mathematics at the <strong>Technische Universität Berlin</strong>, specializing in Stochastic Processes and Numerical Analysis[cite: 29, 30]. My passion lies at the intersection of rigorous mathematical theory and practical quantitative finance.
-        </p>
-        <p>
-            Previously, I graduated with a B.Sc. in Mathematics from <strong>RWTH Aachen</strong> (Final Grade: 2.1), where I wrote my thesis on Randomized Low-Rank Runge-Kutta Methods (Grade: 1.0)[cite: 31, 35]. I combine this academic background with hands-on experience in software development and data analysis.
-        </p>
-    </section>
-
-    <section id="projects">
-        <h2>Selected Projects & Research</h2>
-        <div class="project-grid">
+    <div class="container">
+        <div class="terminal-window">
+            <div class="terminal-header">
+                <div class="dots">
+                    <div class="dot red"></div>
+                    <div class="dot yellow"></div>
+                    <div class="dot green"></div>
+                </div>
+                <div class="title">taha@tu-berlin:~/portfolio</div>
+            </div>
             
-            <div class="project-card">
-                <a href="#" class="project-title">Hull Tactical Market Prediction 📈</a>
-                <p>Developing quantitative models (LightGBM, Neural Nets) to forecast daily excess market returns under volatility constraints.</p>
-                <div class="tags">
-                    <span class="tag">Python</span>
-                    <span class="tag">LightGBM</span>
-                    <span class="tag">FinML</span>
+            <div class="terminal-body">
+                
+                <div>
+                    <span class="prompt">➜</span> <span id="typewriter"></span><span class="cursor">_</span>
                 </div>
-            </div>
-
-            <div class="project-card">
-                <a href="#" class="project-title">Randomized Low-Rank Runge-Kutta Methods 🧮</a>
-                <p>Implemented algorithms to solve large Matrix Differential Equations (e.g., Schrödinger equation) using low-rank approximation.</p>
-                <div class="tags">
-                    <span class="tag">MATLAB</span>
-                    <span class="tag">Numerical Analysis</span>
-                    <span class="tag">Thesis: 1.0</span>
+                
+                <div style="margin-top: 20px; color: #8b949e;">
+                    > Master's Student in Mathematics @ TU Berlin<br>
+                    > Specializing in Stochastic Processes & Numerical Analysis<br>
+                    > Ex-Founder | Quant Enthusiast
                 </div>
-            </div>
 
-            <div class="project-card">
-                <a href="#" class="project-title">AI Mathematical Olympiad 🏆</a>
-                <p>Building an inference pipeline in Python to process LaTeX-formatted math problems and generate integer-constrained solutions.</p>
-                <div class="tags">
-                    <span class="tag">LLMs</span>
-                    <span class="tag">Symbolic Reasoning</span>
-                    <span class="tag">Kaggle</span>
+                <div style="margin-top: 20px;">
+                    <a href="./cv_taha_atlagh.pdf" target="_blank">[Download CV.pdf]</a> &nbsp;
+                    <a href="https://github.com/Taha1703" target="_blank">[GitHub]</a> &nbsp;
+                    <a href="https://linkedin.com/in/taha-atlagh" target="_blank">[LinkedIn]</a>
                 </div>
-            </div>
 
-            <div class="project-card">
-                <a href="#" class="project-title">Interactive Numerical Visualizations 💻</a>
-                <p>Created JSXGraph-based web demos for estimating parameters of exponentially damped sine functions (Gauss-Newton method).</p>
-                <div class="tags">
-                    <span class="tag">JavaScript</span>
-                    <span class="tag">JSXGraph</span>
-                    <span class="tag">HTML5</span>
+                <h2>./projects</h2>
+                <div class="grid">
+                    <div class="card">
+                        <div style="color: var(--green);">def hull_tactical_prediction():</div>
+                        <p style="font-size: 0.9rem; margin: 10px 0;">
+                            Developing LightGBM models for daily excess market returns under 120% volatility constraints.
+                        </p>
+                        <div>
+                            <span class="tag">Python</span>
+                            <span class="tag">Kaggle</span>
+                            <span class="tag">Volatility</span>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div style="color: var(--purple);">class RLRK_Method(ODE_Solver):</div>
+                        <p style="font-size: 0.9rem; margin: 10px 0;">
+                            My Bachelor Thesis (1.0). Solved large Matrix Differential Equations (Schrödinger) using randomized low-rank approx.
+                        </p>
+                        <div>
+                            <span class="tag">MATLAB</span>
+                            <span class="tag">Numerics</span>
+                            <span class="tag">Linear Algebra</span>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div style="color: var(--accent);">async function ai_math_olympiad():</div>
+                        <p style="font-size: 0.9rem; margin: 10px 0;">
+                            Inference pipeline for solving IMO-level math problems using LLMs and symbolic reasoning.
+                        </p>
+                        <div>
+                            <span class="tag">LLM</span>
+                            <span class="tag">Symbolic AI</span>
+                        </div>
+                    </div>
                 </div>
+
+                <h2>./experience</h2>
+                <div style="border-left: 2px solid #30363d; padding-left: 15px;">
+                    <div style="margin-bottom: 15px;">
+                        <span style="color: var(--accent);">2025 - NOW</span> <b style="color: #fff;">Company Consulting Team e.V.</b><br>
+                        <span style="font-size: 0.9rem; color: #8b949e;">Consultant & Quant Initiative Lead (Planned)</span>
+                    </div>
+                    <div style="margin-bottom: 15px;">
+                        <span style="color: var(--accent);">2025 - 2025</span> <b style="color: #fff;">IGPM @ RWTH Aachen</b><br>
+                        <span style="font-size: 0.9rem; color: #8b949e;">Research Assistant (Numerical Methods & Visualization)</span>
+                    </div>
+                    <div>
+                        <span style="color: var(--accent);">2024 - 2025</span> <b style="color: #fff;">A&T Websolutions</b><br>
+                        <span style="font-size: 0.9rem; color: #8b949e;">Founder & Lead Developer</span>
+                    </div>
+                </div>
+
+                <h2>./contact</h2>
+                <div>
+                    <span class="prompt">➜</span> echo $EMAIL<br>
+                    <a href="mailto:atlaghtaha@gmail.com">atlaghtaha@gmail.com</a>
+                </div>
+
             </div>
-
         </div>
-    </section>
+    </div>
 
-    <section id="experience">
-        <h2>Experience</h2>
-        
-        <div class="timeline-item">
-            <div class="timeline-header">
-                <span>Company Consulting Team e. V.</span>
-                <span class="timeline-date">Oct 2025 – Present</span>
-            </div>
-            <div>Consultant (External Projects & Process Optimization)</div>
-        </div>
+    <script>
+        // 1. TYPEWRITER EFFECT
+        const text = "whoami --taha-atlagh";
+        let i = 0;
+        function typeWriter() {
+            if (i < text.length) {
+                document.getElementById("typewriter").innerHTML += text.charAt(i);
+                i++;
+                setTimeout(typeWriter, 100);
+            }
+        }
+        window.onload = function() {
+            typeWriter();
+            initMathCanvas();
+        };
 
-        <div class="timeline-item">
-            <div class="timeline-header">
-                <span>IGPM, RWTH Aachen</span>
-                <span class="timeline-date">Mar 2025 – Oct 2025</span>
-            </div>
-            <div>Research Assistant (Numerical Methods & Visualization)</div>
-        </div>
+        // 2. MATH VISUALIZATION (Lorenz Attractor)
+        // This simulates a chaotic system, representing "Stochastic Processes" and complexity.
+        function initMathCanvas() {
+            const canvas = document.getElementById('math-canvas');
+            const ctx = canvas.getContext('2d');
+            
+            let width, height;
+            
+            function resize() {
+                width = window.innerWidth;
+                height = window.innerHeight;
+                canvas.width = width;
+                canvas.height = height;
+            }
+            window.addEventListener('resize', resize);
+            resize();
 
-        <div class="timeline-item">
-            <div class="timeline-header">
-                <span>A&T Websolutions GbR</span>
-                <span class="timeline-date">Apr 2024 – Oct 2025</span>
-            </div>
-            <div>Founder & Lead Developer</div>
-        </div>
+            // Lorenz Parameters
+            let x = 0.1, y = 0, z = 0;
+            const sigma = 10, rho = 28, beta = 8/3;
+            const dt = 0.01;
+            const points = [];
+            const maxPoints = 2000; // Trail length
 
-    </section>
+            function draw() {
+                // Dimming effect for trail
+                ctx.fillStyle = 'rgba(13, 17, 23, 0.1)'; 
+                ctx.fillRect(0, 0, width, height);
 
-    <footer>
-        <p style="font-size: 0.8rem; color: #888; margin-top: 50px;">
-            &copy; 2026 Taha Atlagh. Built with code, calculus, and coffee.
-        </p>
-    </footer>
+                // Calculate next point (Euler integration)
+                const dx = (sigma * (y - x)) * dt;
+                const dy = (x * (rho - z) - y) * dt;
+                const dz = (x * y - beta * z) * dt;
+                
+                x += dx;
+                y += dy;
+                z += dz;
 
+                points.push({x, y, z});
+                if (points.length > maxPoints) points.shift();
+
+                ctx.beginPath();
+                // Color based on Z position (Heatmap style)
+                ctx.strokeStyle = '#58a6ff'; 
+                ctx.lineWidth = 1.5;
+
+                // Projection to 2D screen
+                const scale = 15;
+                const centerX = width / 2;
+                const centerY = height / 2;
+
+                for (let i = 0; i < points.length - 1; i++) {
+                    const p1 = points[i];
+                    const p2 = points[i+1];
+                    
+                    // Simple weak perspective projection + rotation
+                    // We rotate slightly to make it look 3D
+                    const angle = Date.now() * 0.0002;
+                    const rotX1 = p1.x * Math.cos(angle) - p1.y * Math.sin(angle);
+                    const rotY1 = p1.x * Math.sin(angle) + p1.y * Math.cos(angle);
+                    const rotX2 = p2.x * Math.cos(angle) - p2.y * Math.sin(angle);
+                    const rotY2 = p2.x * Math.sin(angle) + p2.y * Math.cos(angle);
+
+                    ctx.beginPath();
+                    ctx.moveTo(centerX + rotX1 * scale, centerY - (p1.z - 25) * scale); // Z is up
+                    ctx.lineTo(centerX + rotX2 * scale, centerY - (p2.z - 25) * scale);
+                    
+                    // Dynamic Opacity based on age of point
+                    ctx.globalAlpha = i / points.length;
+                    ctx.stroke();
+                }
+                
+                requestAnimationFrame(draw);
+            }
+            draw();
+        }
+    </script>
 </body>
 </html>
