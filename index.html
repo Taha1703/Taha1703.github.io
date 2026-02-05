@@ -18,7 +18,7 @@
             --yellow: #f59e0b;
             --purple: #8b5cf6;
             --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
-            --font-serif: 'Times New Roman', serif; /* For the Paper */
+            --font-serif: 'Times New Roman', serif;
             --font-ui: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         }
 
@@ -100,9 +100,7 @@
 
         .window-content { flex: 1; overflow-y: auto; color: var(--text-main); position: relative; }
 
-        /* --- CONTENT STYLES --- */
-        
-        /* 1. PAPER STYLE (LaTeX Simulation) */
+        /* --- PAPER & THESIS STYLES --- */
         .paper-content {
             padding: 40px;
             background: #fff;
@@ -120,7 +118,11 @@
             background: #f5f5f5; padding: 10px; margin: 15px 0; border-radius: 4px; 
             font-family: var(--font-mono); font-size: 0.9rem; text-align: center; color: #003366;
         }
-        .paper-list { margin-bottom: 15px; padding-left: 20px; }
+        .paper-code {
+            background: #f4f4f4; border-left: 3px solid #3b82f6;
+            font-family: var(--font-mono); font-size: 0.85rem; padding: 10px; margin: 15px 0;
+            white-space: pre-wrap; color: #333;
+        }
         
         /* Loading Overlay for Compiler */
         .compiler-overlay {
@@ -131,12 +133,12 @@
             z-index: 10;
         }
 
-        /* 2. TERMINAL STYLE */
+        /* --- TERMINAL STYLE --- */
         .term-content { padding: 15px; font-family: var(--font-mono); font-size: 0.9rem; }
         .cmd-input { background: transparent; border: none; color: inherit; font: inherit; outline: none; width: 80%; }
         .prompt { color: var(--green); margin-right: 10px; }
         
-        /* 3. PROFILE STYLE */
+        /* --- PROFILE STYLE --- */
         .profile-wrap { padding: 30px; text-align: center; }
         .profile-img { width: 100px; height: 100px; border-radius: 50%; border: 3px solid var(--accent); margin-bottom: 20px; object-fit: cover;}
         .skill-tag { display: inline-block; background: rgba(59, 130, 246, 0.2); color: var(--accent); padding: 4px 10px; border-radius: 100px; font-size: 0.8rem; margin: 3px; border: 1px solid rgba(59, 130, 246, 0.3); }
@@ -159,7 +161,6 @@
         
         @keyframes ticker { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
         @keyframes openWindow { from { transform: scale(0.9) translateY(20px); opacity: 0; } to { transform: scale(1) translateY(0); opacity: 1; } }
-        @keyframes blink { 50% { opacity: 0; } }
 
     </style>
 </head>
@@ -183,7 +184,7 @@
             </div>
             <div class="icon" onclick="openWindow('thesis', 250, 200)">
                 <div class="icon-img">🎓</div>
-                <div class="icon-label">Thesis_RLRK</div>
+                <div class="icon-label">Thesis_RLRK.pdf</div>
             </div>
             <div class="icon" onclick="window.open('./cv_taha_atlagh.pdf')">
                 <div class="icon-img">📝</div>
@@ -195,7 +196,7 @@
             </div>
         </div>
 
-        <div id="win-hull" class="window" style="width: 700px; height: 600px; display: none;">
+        <div id="win-hull" class="window" style="width: 750px; height: 650px; display: none;">
             <div class="window-header" onmousedown="dragStart(event, 'win-hull')">
                 <div class="win-controls"><div class="win-btn close-btn" onclick="closeWindow('win-hull')"></div></div>
                 <div class="win-title">Hull Tactical: Market Prediction.pdf</div>
@@ -226,62 +227,90 @@
                     <div class="paper-math">
                         r_excess = r_SPY - r_risk_free
                     </div>
-                    <div class="paper-h2">1.1 Volatility Constraint (120%)</div>
+                    
+                    <div class="paper-h1">4. Implementation Strategy</div>
                     <div class="paper-p">
-                        The strategy volatility &sigma;_Strat must not exceed 1.2x the market volatility &sigma;_Market. This implies a mandatory <strong>Volatility Control Mechanism</strong>.
-                    </div>
-                    <div class="paper-math">
-                        &sigma;_Strat &le; 1.2 &middot; &sigma;_Market
+                        Our final submission utilizes an ensemble of <strong>LightGBM</strong> regressors to minimize RMSE on forward returns. The architecture is designed to be robust against regime shifts and volatility spikes.
                     </div>
 
-                    <div class="paper-h1">2. Quantitative Strategies</div>
-                    <div class="paper-h2">2.1 Volatility Scaling (Moreira & Muir)</div>
+                    <div class="paper-h2">4.1 Inverse Volatility Weighting</div>
                     <div class="paper-p">
-                        Risk and return are often negatively correlated. To maximize Sharpe Ratio, we scale exposure inversely to variance:
+                        To stabilize the learning process in high-volatility environments, sample weights are inversely proportional to the rolling volatility. This prevents the model from overfitting to "noisy" events.
                     </div>
                     <div class="paper-math">
-                        w_t = min(2, c / &sigma;^2_t)
-                    </div>
-                    <div class="paper-p">
-                        Where w_t is the allocation weight. We use GARCH(1,1) to estimate the variance &sigma;^2_t.
+                        w_i = \frac{1}{\sigma_{t-1} + \epsilon}, \quad \text{clipped at 99th percentile}
                     </div>
 
-                    <div class="paper-h2">2.2 Fractional Differentiation</div>
+                    <div class="paper-h2">4.2 Utility-Free Control & Allocation</div>
                     <div class="paper-p">
-                        Financial data is non-stationary. Instead of integer differencing (d=1), we use fractional d &in; (0, 1) to preserve memory while achieving stationarity.
+                        The raw prediction is converted into a portfolio weight using a modified Kelly criterion, constrained by a robust Z-score mechanism to filter weak signals.
                     </div>
-
-                    <div class="paper-h1">3. Model Architecture</div>
+                    <div class="paper-code">
+def utility_free_control(predicted_mu, current_sigma, history):
+    raw_opt = predicted_mu / (current_sigma**2 + 1e-6)
+    
+    # Robust Z-Score using Median & IQR
+    w_median = np.median(history[-252:])
+    iqr = np.percentile(history, 75) - np.percentile(history, 25)
+    z_score = (raw_opt - w_median) / (iqr * 0.74)
+    
+    # Crisis Mode: Halve risk if daily vol > 2%
+    scaling = 0.5 if current_sigma > 0.02 else 0.8
+    
+    return 1.0 + np.tanh(z_score * scaling)
+                    </div>
                     <div class="paper-p">
-                        We employ an ensemble approach. <strong>LightGBM</strong> optimizes a differentiable loss function using 2nd order Taylor expansion (Newton's method).
-                    </div>
-                    <div class="paper-math">
-                        L^(m) &approx; &sum; [g_i h_m(x_i) + 0.5 k_i h_m^2(x_i)]
-                    </div>
-                    <div class="paper-p">
-                        This is combined with Ridge/Lasso regression for feature selection and robustness against noise.
+                        This approach ensures that we remain fully invested ($w=1$) in neutral markets and only leverage ($w>1$) or deleverage ($w<1$) when the signal-to-noise ratio is statistically significant.
                     </div>
                 </div>
             </div>
         </div>
 
-        <div id="win-thesis" class="window" style="width: 600px; height: 400px; display: none;">
+        <div id="win-thesis" class="window" style="width: 800px; height: 600px; display: none;">
             <div class="window-header" onmousedown="dragStart(event, 'win-thesis')">
                 <div class="win-controls"><div class="win-btn close-btn" onclick="closeWindow('win-thesis')"></div></div>
-                <div class="win-title">Thesis_Summary.md</div>
+                <div class="win-title">Bachelor_Thesis_RLRK.pdf (Summary)</div>
                 <div></div>
             </div>
-            <div class="window-content" style="padding: 20px; font-family: var(--font-mono); line-height: 1.5;">
-                <h2 style="color: var(--purple); margin-top: 0;">Randomized Low-Rank Runge-Kutta Methods</h2>
-                <div style="border-bottom: 1px solid #333; margin-bottom: 15px;"></div>
-                <p><strong>Topic:</strong> Numerical Analysis / High Performance Computing</p>
-                <p><strong>Problem:</strong> Solving large-scale Matrix Differential Equations (e.g., Schrödinger Equation) is computationally expensive O(n^3).</p>
-                <p><strong>Solution:</strong> Implemented a low-rank approximation algorithm that projects the dynamics onto a smaller manifold.</p>
-                <p><strong>Result:</strong> Reduced complexity to <span style="color:var(--green)">O(n log n)</span> while maintaining error bounds. Benchmarked in MATLAB & Python.</p>
-                <br>
-                <div style="background: rgba(255,255,255,0.05); padding: 10px; border-radius: 4px;">
-                    <code>Grade: 1.0 (Excellent)</code><br>
-                    <code>Status: Published to GitHub</code>
+            <div class="window-content paper-content" style="font-family: 'Times New Roman', serif;">
+                <div style="text-align: center; border-bottom: 1px solid #ddd; padding-bottom: 20px; margin-bottom: 20px;">
+                    <div style="font-size: 1.4rem; font-weight: bold;">Randomized Low-Rank Runge-Kutta Methods</div>
+                    <div style="font-style: italic; color: #555; margin-top: 5px;">Bachelor's Thesis @ RWTH Aachen (IGPM)</div>
+                    <div style="margin-top: 10px; font-weight: bold;">Grade: 1.0 (Excellent)</div>
+                </div>
+
+                <div class="paper-h1">1. Abstract</div>
+                <div class="paper-p">
+                    This thesis addresses the computational challenges of solving high-dimensional matrix differential equations $\dot{A}(t) = F(A(t))$, where standard integrators fail due to memory constraints ($O(n^2)$). We analyze <strong>Randomized Low-Rank Runge-Kutta (RLRK)</strong> methods, which constrain the solution to a low-rank manifold $\mathcal{M}_r$ using randomized projections (generalized Nyström approximation).
+                </div>
+
+                <div class="paper-h1">2. Methodology: Randomized Sketching</div>
+                <div class="paper-p">
+                    Instead of a deterministic SVD (which is slow), we employ a randomized sketching approach. The algorithm constructs a subspace approximation by multiplying the data matrix $A$ with a random test matrix $\Omega$.
+                </div>
+                <div class="paper-math">
+                    Y = A\Omega, \quad \text{where } \Omega \text{ is Gaussian or SRFT}
+                </div>
+                <div class="paper-p">
+                    <strong>Key Innovation:</strong> The use of <strong>Subsampled Randomized Fourier Transforms (SRFT)</strong> reduces the complexity of the sketching step from $O(mn^2)$ to $O(mn \log n)$. Our benchmarks confirm that SRFT significantly outperforms dense Gaussian matrices for $n > 8192$.
+                </div>
+
+                <div class="paper-h1">3. Error Analysis & Convergence</div>
+                <div class="paper-p">
+                    We prove that the global error of the RLRK method is bounded by:
+                </div>
+                <div class="paper-math">
+                    \|Y_N - A(T)\|_{L_q} \le C(\delta + \epsilon + h^\gamma)
+                </div>
+                <div class="paper-p">
+                    Unlike Projected Runge-Kutta (PRK) methods, which require the vector field to be tangential to the manifold, RLRK only requires the <em>flow</em> to be approximable. This makes RLRK robust in scenarios where PRK fails (e.g., Lyapunov equation with high perturbations $\alpha=1$).
+                </div>
+
+                <div class="paper-h1">4. Numerical Experiments</div>
+                <div class="paper-p">
+                    <strong>Lyapunov Equation:</strong> RLRK4 maintains 4th-order convergence even when PRK4 collapses due to large projection errors.
+                    <br><br>
+                    <strong>Allen-Cahn Equation:</strong> For stiff problems, the fixed-step RLRK4 method proved more stable than the adaptive DOPRI45, which suffered from numerical noise in stiff regimes.
                 </div>
             </div>
         </div>
@@ -298,10 +327,9 @@
                 <p style="color: var(--text-muted); margin-top: 5px;">M.Sc. Mathematics @ TU Berlin</p>
                 <div style="margin: 20px 0;">
                     <span class="skill-tag">Stochastic Calculus</span>
-                    <span class="skill-tag">Python</span>
-                    <span class="skill-tag">C++</span>
-                    <span class="skill-tag">Numerics</span>
-                    <span class="skill-tag">Time Series</span>
+                    <span class="skill-tag">Python & C++</span>
+                    <span class="skill-tag">High Perf. Computing</span>
+                    <span class="skill-tag">Market Microstructure</span>
                 </div>
                 <p style="text-align: left; font-size: 0.9rem; margin-top: 20px;">
                     Focusing on the intersection of rigorous probability theory and practical algorithmic trading. 
@@ -322,7 +350,7 @@
             </div>
             <div class="window-content term-content" onclick="document.getElementById('cmd').focus()">
                 <div id="term-out">
-                    Welcome to TahaOS v3.0 (Quant Edition)<br>
+                    Welcome to TahaOS v4.2 (Quant Edition)<br>
                     Status: <span style="color:var(--green)">Systems Nominal</span><br><br>
                 </div>
                 <div style="display: flex;">
@@ -357,7 +385,8 @@
                 document.getElementById('boot').style.display = 'none';
                 document.getElementById('desktop').style.opacity = '1';
                 initLorenz();
-                openWindow('terminal', 100, 100);
+                // Open Hull Tactical Window automatically to show off
+                openWindow('hull', 150, 80);
             }, 800);
             setInterval(() => document.getElementById('clock').innerText = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}), 1000);
         };
@@ -455,9 +484,10 @@
                 termOut.innerHTML += `<div><span class="prompt">root@taha:~$</span> ${val}</div>`;
                 
                 if(val === 'clear') termOut.innerHTML = '';
-                else if(val === 'ls') termOut.innerHTML += `<div style="color:#666">Hull_Tactical.tex  Thesis.md  cv.pdf  profile.json</div>`;
+                else if(val === 'ls') termOut.innerHTML += `<div style="color:#666">Hull_Tactical.tex  Thesis_RLRK.pdf  cv.pdf  profile.json</div>`;
                 else if(val === 'help') termOut.innerHTML += `<div style="color:#3b82f6">Commands: ls, open [file], clear, matrix</div>`;
                 else if(val === 'open hull') openWindow('hull', 200, 150);
+                else if(val === 'open thesis') openWindow('thesis', 250, 200);
                 else if(val === 'matrix') startMatrix();
                 else if(val !== '') termOut.innerHTML += `<div style="color:#ef4444">Command not found</div>`;
                 
@@ -511,25 +541,9 @@
                         ctx.lineTo(cx+rxn*scale*s2, cy-pn.y*scale*s2);
                     }
                     ctx.stroke();
-                } else {
-                    // Matrix
-                    ctx.fillStyle='rgba(0,0,0,0.05)'; ctx.fillRect(0,0,w,h);
-                    ctx.fillStyle='#0F0'; ctx.font='15px monospace';
-                    drops.forEach((y,i) => {
-                        const txt = '01ABCDEF'[Math.floor(Math.random()*8)];
-                        ctx.fillText(txt, i*20, y*20);
-                        if(y*20 > h && Math.random()>0.975) drops[i]=0;
-                        drops[i]++;
-                    });
                 }
                 requestAnimationFrame(draw);
             }
-            
-            // Matrix vars
-            const cols = Math.floor(window.innerWidth/20);
-            const drops = Array(cols).fill(1);
-            
-            window.startMatrix = () => { mode = 'matrix'; ctx.clearRect(0,0,w,h); };
             draw();
         }
     </script>
