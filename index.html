@@ -5,417 +5,354 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Taha Atlagh | Quant Research</title>
     <style>
-        /* --- SYSTEM KERNEL STYLES --- */
+        /* --- SYSTEM KERNEL & CRT EFFECT --- */
         :root {
             --bg-color: #050505;
-            --glass-bg: rgba(20, 20, 25, 0.85);
-            --glass-border: rgba(255, 255, 255, 0.08);
+            --glass-bg: rgba(20, 20, 25, 0.9);
+            --glass-border: rgba(255, 255, 255, 0.1);
             --text-main: #e0e0e0;
             --text-muted: #808080;
-            --accent: #3b82f6; /* Research Blue */
+            --accent: #3b82f6;
             --green: #10b981;
-            --red: #ef4444;
-            --yellow: #f59e0b;
-            --purple: #8b5cf6;
+            --code-bg: #1e1e1e;
             --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
-            --font-serif: 'Times New Roman', serif;
-            --font-ui: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            --font-ui: -apple-system, BlinkMacSystemFont, sans-serif;
         }
-
-        * { box-sizing: border-box; }
 
         body {
-            margin: 0;
-            background-color: var(--bg-color);
-            color: var(--text-main);
-            font-family: var(--font-ui);
-            overflow: hidden;
-            height: 100vh;
-            width: 100vw;
-            user-select: none;
+            margin: 0; background-color: var(--bg-color); color: var(--text-main);
+            font-family: var(--font-ui); overflow: hidden; height: 100vh; user-select: none;
         }
 
-        /* --- BACKGROUND SIMULATION --- */
-        canvas#bg-canvas {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            z-index: 0; opacity: 0.5;
+        /* CRT Scanline Overlay */
+        body::after {
+            content: " "; display: block; position: absolute; top: 0; left: 0; bottom: 0; right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
+            z-index: 9999; background-size: 100% 2px, 3px 100%; pointer-events: none;
         }
 
-        /* --- DESKTOP --- */
-        #desktop {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            z-index: 10; opacity: 0; transition: opacity 1s;
-        }
+        canvas#bg-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; opacity: 0.6; }
 
-        /* ICONS */
-        .desktop-icons {
-            position: absolute; top: 30px; left: 30px;
-            display: flex; flex-direction: column; gap: 25px; z-index: 5;
-        }
-
+        /* --- DESKTOP ICONS --- */
+        .desktop-icons { position: absolute; top: 30px; left: 30px; display: flex; flex-direction: column; gap: 25px; z-index: 5; }
         .icon {
-            width: 80px; display: flex; flex-direction: column; align-items: center;
-            cursor: pointer; padding: 10px; border-radius: 6px; transition: 0.2s;
-            text-align: center;
+            width: 85px; display: flex; flex-direction: column; align-items: center; cursor: pointer;
+            padding: 10px; border-radius: 8px; transition: 0.2s; text-align: center; border: 1px solid transparent;
         }
-        .icon:hover { background: rgba(255, 255, 255, 0.1); transform: translateY(-2px); }
-        .icon-img { font-size: 2.2rem; margin-bottom: 8px; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.5)); }
-        .icon-label { font-size: 0.8rem; color: #fff; text-shadow: 0 2px 4px rgba(0,0,0,0.9); font-weight: 500; letter-spacing: 0.5px; }
+        .icon:hover { background: rgba(255, 255, 255, 0.1); border-color: rgba(255, 255, 255, 0.2); backdrop-filter: blur(5px); }
+        .icon-img { font-size: 2.2rem; margin-bottom: 8px; filter: drop-shadow(0 0 10px rgba(59, 130, 246, 0.5)); }
+        .icon-label { font-size: 0.8rem; color: #fff; text-shadow: 0 2px 4px #000; font-weight: 500; }
 
         /* --- WINDOW MANAGER --- */
         .window {
-            position: absolute;
-            background: var(--glass-bg);
-            backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
-            border: 1px solid var(--glass-border);
-            border-radius: 8px;
-            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255,255,255,0.05);
-            display: flex; flex-direction: column;
-            overflow: hidden;
-            transition: transform 0.1s, opacity 0.2s;
-            animation: openWindow 0.4s cubic-bezier(0.19, 1, 0.22, 1);
+            position: absolute; background: var(--glass-bg);
+            backdrop-filter: blur(20px); border: 1px solid var(--glass-border);
+            border-radius: 10px; box-shadow: 0 50px 100px rgba(0,0,0,0.8);
+            display: flex; flex-direction: column; overflow: hidden;
+            transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94), opacity 0.3s, width 0.3s, height 0.3s;
+            opacity: 0; transform: scale(0.9); pointer-events: none;
         }
-        .window.active { 
-            border-color: var(--accent); 
-            z-index: 100 !important; 
-            box-shadow: 0 40px 80px rgba(0,0,0,0.8), 0 0 0 1px var(--accent); 
+        .window.open { opacity: 1; transform: scale(1); pointer-events: all; }
+        .window.minimized {
+            transform: scale(0) translate(0, 500px); opacity: 0; /* Genie effect simulation */
         }
+        .window.active { z-index: 100 !important; border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent), 0 50px 100px rgba(0,0,0,0.9); }
 
         .window-header {
-            background: linear-gradient(to bottom, rgba(255,255,255,0.05), rgba(255,255,255,0.01));
-            padding: 10px 14px;
-            display: flex; align-items: center; justify-content: space-between;
-            cursor: grab; border-bottom: 1px solid var(--glass-border);
+            background: rgba(255,255,255,0.03); padding: 12px; display: flex; align-items: center;
+            justify-content: space-between; cursor: grab; border-bottom: 1px solid var(--glass-border);
         }
-        .window-header:active { cursor: grabbing; }
-
         .win-controls { display: flex; gap: 8px; }
-        .win-btn { width: 12px; height: 12px; border-radius: 50%; cursor: pointer; transition: 0.2s; position: relative; }
-        .win-btn:hover { filter: brightness(1.2); }
-        .close-btn { background: #ff5f56; }
-        .min-btn { background: #ffbd2e; }
-        .max-btn { background: #27c93f; }
+        .win-btn { width: 12px; height: 12px; border-radius: 50%; cursor: pointer; }
+        .close { background: #ff5f56; } .min { background: #ffbd2e; } .max { background: #27c93f; }
+        .win-title { font-size: 0.85rem; color: #ccc; font-family: var(--font-ui); }
 
-        .win-title { font-size: 0.8rem; color: var(--text-muted); font-weight: 500; pointer-events: none; }
+        .window-content { flex: 1; overflow-y: auto; color: var(--text-main); font-size: 0.95rem; line-height: 1.6; }
 
-        .window-content { flex: 1; overflow-y: auto; color: var(--text-main); position: relative; }
-
-        /* --- PAPER & THESIS STYLES --- */
-        .paper-content {
-            padding: 40px;
-            background: #fff;
-            color: #000;
-            font-family: var(--font-serif);
-            line-height: 1.6;
-        }
-        .paper-title { font-size: 1.8rem; font-weight: bold; text-align: center; margin-bottom: 5px; color: #000;}
-        .paper-meta { text-align: center; font-size: 0.9rem; color: #444; margin-bottom: 30px; font-style: italic; }
-        .paper-abstract { font-size: 0.9rem; margin: 0 auto 30px auto; width: 90%; font-style: italic; border-left: 2px solid #ccc; padding-left: 15px; }
-        .paper-h1 { font-size: 1.2rem; font-weight: bold; border-bottom: 1px solid #000; padding-bottom: 5px; margin-top: 30px; margin-bottom: 15px; text-transform: uppercase; }
-        .paper-h2 { font-size: 1.1rem; font-weight: bold; margin-top: 20px; margin-bottom: 10px; color: #333; }
-        .paper-p { margin-bottom: 15px; text-align: justify; font-size: 1rem; }
-        .paper-math { 
-            background: #f5f5f5; padding: 10px; margin: 15px 0; border-radius: 4px; 
-            font-family: var(--font-mono); font-size: 0.9rem; text-align: center; color: #003366;
-        }
-        .paper-code {
-            background: #f4f4f4; border-left: 3px solid #3b82f6;
-            font-family: var(--font-mono); font-size: 0.85rem; padding: 10px; margin: 15px 0;
-            white-space: pre-wrap; color: #333;
-        }
+        /* --- CONTENT STYLES --- */
+        .paper-view { padding: 40px; background: #fff; color: #111; font-family: 'Times New Roman', serif; min-height: 100%; }
+        .paper-title { font-size: 1.8rem; font-weight: bold; text-align: center; margin-bottom: 10px; }
+        .paper-meta { text-align: center; color: #555; font-style: italic; margin-bottom: 30px; font-size: 0.9rem; }
+        .paper-h1 { font-size: 1.2rem; font-weight: bold; text-transform: uppercase; border-bottom: 2px solid #111; padding-bottom: 5px; margin: 30px 0 15px 0; }
+        .paper-p { margin-bottom: 15px; text-align: justify; }
+        .math-block { background: #f0f0f0; padding: 10px; text-align: center; font-family: var(--font-mono); font-size: 0.9rem; margin: 20px 0; border-radius: 4px; }
         
-        /* Loading Overlay for Compiler */
-        .compiler-overlay {
-            position: absolute; top:0; left:0; width:100%; height:100%;
-            background: #0d1117; color: var(--green);
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            font-family: var(--font-mono); font-size: 0.9rem;
-            z-index: 10;
-        }
+        .code-view { padding: 0; background: var(--code-bg); font-family: var(--font-mono); height: 100%; }
+        .code-header { background: #252526; padding: 10px 20px; font-size: 0.8rem; color: #ccc; border-bottom: 1px solid #333; display: flex; gap: 20px; }
+        .code-tab { cursor: pointer; padding-bottom: 2px; }
+        .code-tab.active { color: var(--accent); border-bottom: 2px solid var(--accent); }
+        .code-content { padding: 20px; color: #d4d4d4; white-space: pre; font-size: 0.85rem; overflow: auto; }
+        .k { color: #569cd6; } /* Keyword */
+        .f { color: #dcdcaa; } /* Function */
+        .s { color: #ce9178; } /* String */
+        .c { color: #6a9955; } /* Comment */
+        .n { color: #b5cea8; } /* Number */
 
-        /* --- TERMINAL STYLE --- */
-        .term-content { padding: 15px; font-family: var(--font-mono); font-size: 0.9rem; }
-        .cmd-input { background: transparent; border: none; color: inherit; font: inherit; outline: none; width: 80%; }
+        /* --- TERMINAL --- */
+        .term-body { padding: 15px; font-family: var(--font-mono); font-size: 0.9rem; }
         .prompt { color: var(--green); margin-right: 10px; }
-        
-        /* --- PROFILE STYLE --- */
-        .profile-wrap { padding: 30px; text-align: center; }
-        .profile-img { width: 100px; height: 100px; border-radius: 50%; border: 3px solid var(--accent); margin-bottom: 20px; object-fit: cover;}
-        .skill-tag { display: inline-block; background: rgba(59, 130, 246, 0.2); color: var(--accent); padding: 4px 10px; border-radius: 100px; font-size: 0.8rem; margin: 3px; border: 1px solid rgba(59, 130, 246, 0.3); }
+        .cmd-in { background: transparent; border: none; color: inherit; font: inherit; outline: none; width: 80%; }
 
         /* --- TASKBAR --- */
         #taskbar {
-            position: absolute; bottom: 0; left: 0; width: 100%; height: 36px;
-            background: rgba(10, 10, 12, 0.95); border-top: 1px solid var(--glass-border);
-            display: flex; align-items: center; justify-content: space-between;
-            padding: 0 15px; font-family: var(--font-mono); font-size: 0.8rem; z-index: 1000;
+            position: absolute; bottom: 0; left: 0; width: 100%; height: 40px;
+            background: rgba(15, 15, 20, 0.8); backdrop-filter: blur(10px);
+            border-top: 1px solid var(--glass-border); display: flex; align-items: center;
+            padding: 0 15px; z-index: 1000; justify-content: space-between;
         }
-        #start-btn { 
-            background: var(--accent); color: #fff; padding: 4px 12px; border-radius: 4px; 
-            font-weight: 700; cursor: pointer; text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+        .start-btn { 
+            background: rgba(255,255,255,0.1); padding: 5px 15px; border-radius: 4px; 
+            font-weight: bold; color: #fff; cursor: pointer; transition: 0.2s;
+            border: 1px solid rgba(255,255,255,0.1);
         }
-        .ticker-wrap { width: 60%; overflow: hidden; white-space: nowrap; mask-image: linear-gradient(90deg, transparent, #000 5%, #000 95%, transparent); }
-        .ticker { display: inline-block; animation: ticker 30s linear infinite; }
-        .ticker-item { margin-right: 40px; color: var(--text-muted); }
-        .ticker-highlight { color: var(--green); font-weight: bold; }
+        .start-btn:hover { background: rgba(255,255,255,0.2); box-shadow: 0 0 15px var(--accent); }
         
-        @keyframes ticker { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
-        @keyframes openWindow { from { transform: scale(0.9) translateY(20px); opacity: 0; } to { transform: scale(1) translateY(0); opacity: 1; } }
+        .dock { display: flex; gap: 5px; margin-left: 20px; }
+        .dock-item {
+            width: 30px; height: 30px; border-radius: 4px; background: rgba(255,255,255,0.05);
+            display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s;
+        }
+        .dock-item:hover { background: rgba(255,255,255,0.15); transform: translateY(-2px); }
+        .dock-item.active { border-bottom: 2px solid var(--accent); }
+
+        .sys-tray { font-family: var(--font-mono); font-size: 0.8rem; color: #aaa; display: flex; gap: 20px; }
+        .blink { animation: blink 1s infinite; }
+        @keyframes blink { 50% { opacity: 0; } }
 
     </style>
 </head>
 <body>
 
-    <div id="boot" style="position:fixed;top:0;left:0;width:100%;height:100%;background:#000;z-index:9999;display:flex;align-items:center;justify-content:center;font-family:monospace;color:#333;">
-        <div id="boot-text" style="color:#3fb950">SYSTEM::INIT(QUANT_KERNEL)</div>
+    <canvas id="bg-canvas"></canvas>
+
+    <div class="desktop-icons">
+        <div class="icon" onclick="openWindow('thesis')">
+            <div class="icon-img">🎓</div>
+            <div class="icon-label">Thesis.pdf</div>
+        </div>
+        <div class="icon" onclick="openWindow('hull')">
+            <div class="icon-img">📈</div>
+            <div class="icon-label">Hull_Tactical</div>
+        </div>
+        <div class="icon" onclick="openWindow('cv')">
+            <div class="icon-img">📄</div>
+            <div class="icon-label">CV_Taha.pdf</div>
+        </div>
+        <div class="icon" onclick="openWindow('terminal')">
+            <div class="icon-img">🚀</div>
+            <div class="icon-label">Terminal</div>
+        </div>
+        <div class="icon" onclick="window.open('https://github.com/Taha1703')">
+            <div class="icon-img">🐙</div>
+            <div class="icon-label">GitHub</div>
+        </div>
     </div>
 
-    <div id="desktop">
-        <canvas id="bg-canvas"></canvas>
+    <div id="win-thesis" class="window" style="width: 800px; height: 600px; top: 10%; left: 25%;">
+        <div class="window-header" onmousedown="dragStart(event, 'win-thesis')">
+            <div class="win-controls">
+                <div class="win-btn close" onclick="closeWindow('win-thesis')"></div>
+                <div class="win-btn min" onclick="minimizeWindow('win-thesis')"></div>
+                <div class="win-btn max"></div>
+            </div>
+            <div class="win-title">Bachelor_Thesis_RLRK.pdf - Preview</div>
+            <div></div>
+        </div>
+        <div class="window-content paper-view">
+            <div class="paper-title">Randomized Low-Rank Runge-Kutta Methods</div>
+            <div class="paper-meta">Taha Atlagh • RWTH Aachen (IGPM) • Grade: 1.0 (Excellent)</div>
+            
+            <div class="paper-h1">1. Abstract</div>
+            <div class="paper-p">
+                [cite_start]This thesis addresses the computational bottleneck of solving high-dimensional matrix differential equations[cite: 141]. Standard integrators scale with $O(n^2)$ memory, which is prohibitive for large systems. [cite_start]We analyze and implement <strong>Randomized Low-Rank Runge-Kutta (RLRK)</strong> methods that constrain the solution to a manifold $\mathcal{M}_r$ using randomized projections[cite: 153].
+            </div>
 
-        <div class="desktop-icons">
-            <div class="icon" onclick="openWindow('profile', 150, 100)">
-                <div class="icon-img">👨‍💻</div>
-                <div class="icon-label">Profile</div>
+            <div class="paper-h1">2. Methodology</div>
+            <div class="paper-p">
+                [cite_start]We employ the <strong>Generalized Nyström Method</strong> for rank reduction[cite: 155]. A key contribution is the comparison of sketching techniques:
             </div>
-            <div class="icon" onclick="openWindow('hull', 200, 150)">
-                <div class="icon-img">📄</div>
-                <div class="icon-label">Hull_Tactical.tex</div>
+            <div class="math-block">
+                Approx(A) = Q ( \Psi^T Q )^\dagger \Psi^T A
             </div>
-            <div class="icon" onclick="openWindow('thesis', 250, 200)">
-                <div class="icon-img">🎓</div>
-                <div class="icon-label">Thesis_RLRK.pdf</div>
+            <div class="paper-p">
+                [cite_start]We demonstrate that <strong>Subsampled Randomized Fourier Transforms (SRFT)</strong> reduce sketching complexity to $O(mn \log n)$[cite: 160], significantly outperforming dense Gaussian matrices for $n > 8192$.
             </div>
-            <div class="icon" onclick="window.open('./cv_taha_atlagh.pdf')">
-                <div class="icon-img">📝</div>
-                <div class="icon-label">Resume.pdf</div>
-            </div>
-            <div class="icon" onclick="openWindow('terminal', 300, 250)">
-                <div class="icon-img">📟</div>
-                <div class="icon-label">Terminal</div>
+
+            <div class="paper-h1">3. Key Results</div>
+            <div class="paper-p">
+                <ul>
+                    [cite_start]<li><strong>Robustness:</strong> RLRK maintains accuracy even when the vector field is not tangential to the manifold, a scenario where Projected Runge-Kutta (PRK) fails (e.g., Lyapunov equation with $\alpha=1$)[cite: 1238].</li>
+                    [cite_start]<li><strong>Stiffness:</strong> For stiff problems like the Allen-Cahn equation, fixed-step RLRK4 proved more stable than adaptive DOPRI45[cite: 1921].</li>
+                </ul>
             </div>
         </div>
+    </div>
 
-        <div id="win-hull" class="window" style="width: 750px; height: 650px; display: none;">
-            <div class="window-header" onmousedown="dragStart(event, 'win-hull')">
-                <div class="win-controls"><div class="win-btn close-btn" onclick="closeWindow('win-hull')"></div></div>
-                <div class="win-title">Hull Tactical: Market Prediction.pdf</div>
-                <div></div>
+    <div id="win-hull" class="window" style="width: 900px; height: 650px; top: 15%; left: 15%;">
+        <div class="window-header" onmousedown="dragStart(event, 'win-hull')">
+            <div class="win-controls">
+                <div class="win-btn close" onclick="closeWindow('win-hull')"></div>
+                <div class="win-btn min" onclick="minimizeWindow('win-hull')"></div>
+                <div class="win-btn max"></div>
             </div>
-            <div class="window-content">
-                <div id="hull-compiler" class="compiler-overlay">
-                    <div style="margin-bottom: 10px;">Compiling LaTeX Source...</div>
-                    <div style="width: 200px; height: 4px; background: #333; border-radius: 2px;">
-                        <div id="compiler-bar" style="width: 0%; height: 100%; background: var(--green); transition: width 1.5s;"></div>
-                    </div>
-                    <div id="compiler-log" style="font-size: 0.7rem; color: #666; margin-top: 10px;">Loading package: amsmath...</div>
-                </div>
+            <div class="win-title">Hull_Tactical_Strategy - VS Code</div>
+            <div></div>
+        </div>
+        <div class="window-content code-view">
+            <div class="code-header">
+                <div class="code-tab active">strategy.py</div>
+                <div class="code-tab">backtest_results.log</div>
+                <div class="code-tab">README.md</div>
+            </div>
+            <div class="code-content">
+<span class="c"># Hull Tactical Market Prediction Strategy</span>
+<span class="c"># Author: Taha Atlagh | Model: LightGBM Ensemble</span>
 
-                <div class="paper-content">
-                    <div class="paper-title">Hull Tactical: Market Prediction</div>
-                    <div class="paper-title" style="font-size: 1.2rem; font-weight: normal; margin-top:5px;">Strategy Paper: Framework, Models & Theory</div>
-                    <div class="paper-meta">Team Strategy Analysis • February 2026 • Taha Atlagh</div>
-                    
-                    <div class="paper-abstract">
-                        <strong>Abstract:</strong> This document serves as the technical specification for the Hull Tactical Market Prediction competition. We analyze volatility constraints and derive mathematical requirements for maximizing the Sharpe Ratio. We utilize LightGBM ensembles and feedforward neural networks under strict time-series cross-validation.
-                    </div>
+<span class="k">import</span> numpy <span class="k">as</span> np
+<span class="k">import</span> lightgbm <span class="k">as</span> lgb
 
-                    <div class="paper-h1">1. Framework & Constraints</div>
-                    <div class="paper-p">
-                        The core task is to predict the <strong>Excess Returns</strong> of the S\&P 500. We challenge the Efficient Market Hypothesis (EMH) by identifying statistical inefficiencies ("Alpha") using ML.
-                    </div>
-                    <div class="paper-math">
-                        r_excess = r_SPY - r_risk_free
-                    </div>
-                    
-                    <div class="paper-h1">4. Implementation Strategy</div>
-                    <div class="paper-p">
-                        Our final submission utilizes an ensemble of <strong>LightGBM</strong> regressors to minimize RMSE on forward returns. The architecture is designed to be robust against regime shifts and volatility spikes.
-                    </div>
-
-                    <div class="paper-h2">4.1 Inverse Volatility Weighting</div>
-                    <div class="paper-p">
-                        To stabilize the learning process in high-volatility environments, sample weights are inversely proportional to the rolling volatility. This prevents the model from overfitting to "noisy" events.
-                    </div>
-                    <div class="paper-math">
-                        w_i = \frac{1}{\sigma_{t-1} + \epsilon}, \quad \text{clipped at 99th percentile}
-                    </div>
-
-                    <div class="paper-h2">4.2 Utility-Free Control & Allocation</div>
-                    <div class="paper-p">
-                        The raw prediction is converted into a portfolio weight using a modified Kelly criterion, constrained by a robust Z-score mechanism to filter weak signals.
-                    </div>
-                    <div class="paper-code">
-def utility_free_control(predicted_mu, current_sigma, history):
-    raw_opt = predicted_mu / (current_sigma**2 + 1e-6)
+<span class="k">def</span> <span class="f">utility_free_control</span>(predicted_mu, current_sigma, history):
+    <span class="s">"""
+    Converts raw predictions into portfolio weights using a robust Z-Score.
+    Avoids overfitting to noise by using median/IQR instead of mean/std.
+    """</span>
+    epsilon = <span class="n">1e-6</span>
+    raw_opt = predicted_mu / (current_sigma**2 + epsilon)
     
-    # Robust Z-Score using Median & IQR
-    w_median = np.median(history[-252:])
-    iqr = np.percentile(history, 75) - np.percentile(history, 25)
-    z_score = (raw_opt - w_median) / (iqr * 0.74)
+    <span class="c"># Robust Normalization</span>
+    w_median = np.median(history[-252:]) <span class="c"># Rolling 1-year window</span>
+    iqr = np.percentile(history, <span class="n">75</span>) - np.percentile(history, <span class="n">25</span>)
+    z_score = (raw_opt - w_median) / (iqr * <span class="n">0.74</span>)
     
-    # Crisis Mode: Halve risk if daily vol > 2%
-    scaling = 0.5 if current_sigma > 0.02 else 0.8
+    <span class="c"># Crisis Mode: Halve leverage if vol > 2% daily</span>
+    scaling = <span class="n">0.5</span> <span class="k">if</span> current_sigma > <span class="n">0.02</span> <span class="k">else</span> <span class="n">0.8</span>
     
-    return 1.0 + np.tanh(z_score * scaling)
-                    </div>
-                    <div class="paper-p">
-                        This approach ensures that we remain fully invested ($w=1$) in neutral markets and only leverage ($w>1$) or deleverage ($w<1$) when the signal-to-noise ratio is statistically significant.
-                    </div>
-                </div>
+    return <span class="n">1.0</span> + np.tanh(z_score * scaling)
+
+<span class="k">def</span> <span class="f">train_ensemble</span>(X, y):
+    <span class="c"># Inverse Volatility Weighting to stabilize learning</span>
+    volatility = X[<span class="s">'lagged_ret'</span>].rolling(<span class="n">20</span>).std()
+    weights = <span class="n">1.0</span> / (volatility + <span class="n">1e-6</span>)
+    
+    models = []
+    seeds = [<span class="n">42</span>, <span class="n">2024</span>, <span class="n">999</span>] <span class="c"># Ensemble across random seeds</span>
+    
+    <span class="k">for</span> seed <span class="k">in</span> seeds:
+        params = {
+            <span class="s">'objective'</span>: <span class="s">'regression'</span>,
+            <span class="s">'learning_rate'</span>: <span class="n">0.03</span>,
+            <span class="s">'seed'</span>: seed
+        }
+        <span class="c"># ... training logic ...</span>
+        models.append(model)
+        
+    return models
             </div>
         </div>
+    </div>
 
-        <div id="win-thesis" class="window" style="width: 800px; height: 600px; display: none;">
-            <div class="window-header" onmousedown="dragStart(event, 'win-thesis')">
-                <div class="win-controls"><div class="win-btn close-btn" onclick="closeWindow('win-thesis')"></div></div>
-                <div class="win-title">Bachelor_Thesis_RLRK.pdf (Summary)</div>
-                <div></div>
+    <div id="win-terminal" class="window" style="width: 600px; height: 400px; top: 20%; left: 30%;">
+        <div class="window-header" onmousedown="dragStart(event, 'win-terminal')">
+            <div class="win-controls">
+                <div class="win-btn close" onclick="closeWindow('win-terminal')"></div>
+                <div class="win-btn min" onclick="minimizeWindow('win-terminal')"></div>
+                <div class="win-btn max"></div>
             </div>
-            <div class="window-content paper-content" style="font-family: 'Times New Roman', serif;">
-                <div style="text-align: center; border-bottom: 1px solid #ddd; padding-bottom: 20px; margin-bottom: 20px;">
-                    <div style="font-size: 1.4rem; font-weight: bold;">Randomized Low-Rank Runge-Kutta Methods</div>
-                    <div style="font-style: italic; color: #555; margin-top: 5px;">Bachelor's Thesis @ RWTH Aachen (IGPM)</div>
-                    <div style="margin-top: 10px; font-weight: bold;">Grade: 1.0 (Excellent)</div>
-                </div>
-
-                <div class="paper-h1">1. Abstract</div>
-                <div class="paper-p">
-                    This thesis addresses the computational challenges of solving high-dimensional matrix differential equations $\dot{A}(t) = F(A(t))$, where standard integrators fail due to memory constraints ($O(n^2)$). We analyze <strong>Randomized Low-Rank Runge-Kutta (RLRK)</strong> methods, which constrain the solution to a low-rank manifold $\mathcal{M}_r$ using randomized projections (generalized Nyström approximation).
-                </div>
-
-                <div class="paper-h1">2. Methodology: Randomized Sketching</div>
-                <div class="paper-p">
-                    Instead of a deterministic SVD (which is slow), we employ a randomized sketching approach. The algorithm constructs a subspace approximation by multiplying the data matrix $A$ with a random test matrix $\Omega$.
-                </div>
-                <div class="paper-math">
-                    Y = A\Omega, \quad \text{where } \Omega \text{ is Gaussian or SRFT}
-                </div>
-                <div class="paper-p">
-                    <strong>Key Innovation:</strong> The use of <strong>Subsampled Randomized Fourier Transforms (SRFT)</strong> reduces the complexity of the sketching step from $O(mn^2)$ to $O(mn \log n)$. Our benchmarks confirm that SRFT significantly outperforms dense Gaussian matrices for $n > 8192$.
-                </div>
-
-                <div class="paper-h1">3. Error Analysis & Convergence</div>
-                <div class="paper-p">
-                    We prove that the global error of the RLRK method is bounded by:
-                </div>
-                <div class="paper-math">
-                    \|Y_N - A(T)\|_{L_q} \le C(\delta + \epsilon + h^\gamma)
-                </div>
-                <div class="paper-p">
-                    Unlike Projected Runge-Kutta (PRK) methods, which require the vector field to be tangential to the manifold, RLRK only requires the <em>flow</em> to be approximable. This makes RLRK robust in scenarios where PRK fails (e.g., Lyapunov equation with high perturbations $\alpha=1$).
-                </div>
-
-                <div class="paper-h1">4. Numerical Experiments</div>
-                <div class="paper-p">
-                    <strong>Lyapunov Equation:</strong> RLRK4 maintains 4th-order convergence even when PRK4 collapses due to large projection errors.
-                    <br><br>
-                    <strong>Allen-Cahn Equation:</strong> For stiff problems, the fixed-step RLRK4 method proved more stable than the adaptive DOPRI45, which suffered from numerical noise in stiff regimes.
-                </div>
+            <div class="win-title">root@taha: ~</div>
+            <div></div>
+        </div>
+        <div class="window-content term-body" onclick="document.getElementById('cmd').focus()">
+            <div>Welcome to TahaOS v5.0 (Quant Kernel)</div>
+            <div>System Status: <span style="color:var(--green)">OPTIMAL</span></div>
+            <div>Thesis Grade: <span style="color:var(--green)">1.0 (Excellent)</span></div>
+            <br>
+            <div id="term-log"></div>
+            <div style="display:flex;">
+                <span class="prompt">root@taha:~$</span>
+                <input id="cmd" class="cmd-in" type="text" autocomplete="off">
             </div>
         </div>
+    </div>
 
-        <div id="win-profile" class="window" style="width: 450px; height: 500px; display: none;">
-            <div class="window-header" onmousedown="dragStart(event, 'win-profile')">
-                <div class="win-controls"><div class="win-btn close-btn" onclick="closeWindow('win-profile')"></div></div>
-                <div class="win-title">user_profile.json</div>
-                <div></div>
+    <div id="win-cv" class="window" style="width: 500px; height: 600px; top: 5%; left: 60%; display:none;">
+        <div class="window-header" onmousedown="dragStart(event, 'win-cv')">
+            <div class="win-controls">
+                <div class="win-btn close" onclick="closeWindow('win-cv')"></div>
+                <div class="win-btn min" onclick="minimizeWindow('win-cv')"></div>
+                <div class="win-btn max"></div>
             </div>
-            <div class="window-content profile-wrap">
-                <img src="./profile.jpg" class="profile-img" onerror="this.src='https://github.com/identicons/taha.png'">
-                <h2 style="margin: 0;">Taha Atlagh</h2>
-                <p style="color: var(--text-muted); margin-top: 5px;">M.Sc. Mathematics @ TU Berlin</p>
-                <div style="margin: 20px 0;">
-                    <span class="skill-tag">Stochastic Calculus</span>
-                    <span class="skill-tag">Python & C++</span>
-                    <span class="skill-tag">High Perf. Computing</span>
-                    <span class="skill-tag">Market Microstructure</span>
-                </div>
-                <p style="text-align: left; font-size: 0.9rem; margin-top: 20px;">
-                    Focusing on the intersection of rigorous probability theory and practical algorithmic trading. 
-                    Currently building volatility forecasting models for the Hull Tactical Kaggle challenge.
-                </p>
-                <div style="margin-top: 30px; display: flex; justify-content: center; gap: 10px;">
-                    <button onclick="window.open('mailto:atlaghtaha@gmail.com')" style="background: var(--accent); border:none; color:white; padding: 8px 16px; border-radius: 4px; cursor: pointer;">Contact Me</button>
-                    <button onclick="window.open('https://github.com/Taha1703')" style="background: #333; border:none; color:white; padding: 8px 16px; border-radius: 4px; cursor: pointer;">GitHub</button>
-                </div>
+            <div class="win-title">CV_Taha_Atlagh.pdf</div>
+            <div></div>
+        </div>
+        <div class="window-content paper-view">
+            <div class="paper-title" style="font-size:1.5rem">Taha Atlagh</div>
+            <div class="paper-meta">M.Sc. Mathematics @ TU Berlin • Quant & HPC</div>
+            
+            <div class="paper-h1">Experience</div>
+            <div class="paper-p">
+                <strong>Consultant @ Company Consulting Team e.V.</strong> (10/25 - Present)<br>
+                Process optimization and external consulting projects.
+            </div>
+            <div class="paper-p">
+                <strong>Research Assistant @ IGPM, RWTH Aachen</strong> (03/25 - 10/25)<br>
+                [cite_start]Designed numerical algorithms for PDEs and created interactive visualizations[cite: 14].
+            </div>
+            <div class="paper-p">
+                <strong>Founder @ A&T Websolutions</strong> (04/24 - 10/25)<br>
+                Managed end-to-end web projects and client delivery.
+            </div>
+
+            <div class="paper-h1">Education</div>
+            <div class="paper-p">
+                <strong>M.Sc. Mathematics</strong>, TU Berlin (Focus: Stochastics)<br>
+                <strong>B.Sc. Mathematics</strong>, RWTH Aachen (Thesis: 1.0)
             </div>
         </div>
+    </div>
 
-        <div id="win-terminal" class="window" style="width: 600px; height: 400px; display: none;">
-            <div class="window-header" onmousedown="dragStart(event, 'win-terminal')">
-                <div class="win-controls"><div class="win-btn close-btn" onclick="closeWindow('win-terminal')"></div></div>
-                <div class="win-title">root@taha: ~</div>
-                <div></div>
-            </div>
-            <div class="window-content term-content" onclick="document.getElementById('cmd').focus()">
-                <div id="term-out">
-                    Welcome to TahaOS v4.2 (Quant Edition)<br>
-                    Status: <span style="color:var(--green)">Systems Nominal</span><br><br>
-                </div>
-                <div style="display: flex;">
-                    <span class="prompt">root@taha:~$</span>
-                    <input type="text" id="cmd" class="cmd-input" autocomplete="off">
-                </div>
+    <div id="taskbar">
+        <div style="display:flex; align-items:center;">
+            <div class="start-btn" onclick="openWindow('terminal')">TAHA</div>
+            <div class="dock">
+                <div class="dock-item" onclick="openWindow('thesis')">🎓</div>
+                <div class="dock-item" onclick="openWindow('hull')">📈</div>
+                <div class="dock-item" onclick="openWindow('terminal')">🚀</div>
             </div>
         </div>
-
-        <div id="taskbar">
-            <div style="display:flex; align-items: center;">
-                <div id="start-btn">TAHA</div>
-                <span style="margin-left: 15px; color: #666;">READY</span>
-            </div>
-            <div class="ticker-wrap">
-                <div class="ticker">
-                    <span class="ticker-item">THESIS <span class="ticker-highlight">RLRK METHODS (1.0)</span></span>
-                    <span class="ticker-item">STRATEGY <span class="ticker-highlight">SEEKING ALPHA</span></span>
-                    <span class="ticker-item">STATUS <span class="ticker-highlight">MODEL CONVERGED</span></span>
-                    <span class="ticker-item">KAGGLE <span class="ticker-highlight">HULL TACTICAL: ACTIVE</span></span>
-                    <span class="ticker-item">LOCATION <span class="ticker-highlight">BERLIN, DE</span></span>
-                </div>
-            </div>
-            <div id="clock">00:00</div>
+        <div class="sys-tray">
+            <span>CPU: 12%</span>
+            <span>MEM: 6.4GB</span>
+            <span id="clock">00:00</span>
         </div>
     </div>
 
     <script>
-        // --- BOOT ---
-        window.onload = () => {
-            setTimeout(() => {
-                document.getElementById('boot').style.display = 'none';
-                document.getElementById('desktop').style.opacity = '1';
-                initLorenz();
-                // Open Hull Tactical Window automatically to show off
-                openWindow('hull', 150, 80);
-            }, 800);
-            setInterval(() => document.getElementById('clock').innerText = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}), 1000);
-        };
-
-        // --- WINDOW MANAGER ---
+        // --- WINDOW MANAGEMENT ---
         let zIndex = 100;
         let activeWin = null;
         let isDragging = false;
         let dragOffset = {x:0, y:0};
 
-        function openWindow(name, x, y) {
-            const id = 'win-' + name;
-            const el = document.getElementById(id);
-            if (!el) return;
-            
+        function openWindow(id) {
+            const el = document.getElementById('win-' + id);
             el.style.display = 'flex';
-            // Set initial position if provided and not already set manually
-            if (x && y && el.style.top === "") {
-                el.style.left = x + 'px';
-                el.style.top = y + 'px';
-            }
-            moveToFront(id);
-
-            // Special effect for Hull Tactical (Compiler)
-            if (name === 'hull') runCompiler();
+            setTimeout(() => {
+                el.classList.remove('minimized');
+                el.classList.add('open');
+                moveToFront('win-' + id);
+            }, 10);
         }
 
         function closeWindow(id) {
-            document.getElementById(id).style.display = 'none';
+            const el = document.getElementById(id);
+            el.classList.remove('open');
+            setTimeout(() => el.style.display = 'none', 300);
+        }
+
+        function minimizeWindow(id) {
+            const el = document.getElementById(id);
+            el.classList.add('minimized');
+            el.classList.remove('active');
         }
 
         function moveToFront(id) {
@@ -425,8 +362,9 @@ def utility_free_control(predicted_mu, current_sigma, history):
             el.classList.add('active');
         }
 
+        // --- DRAG LOGIC ---
         function dragStart(e, id) {
-            if (e.target.classList.contains('win-btn')) return;
+            if(e.target.classList.contains('win-btn')) return;
             isDragging = true;
             activeWin = document.getElementById(id);
             moveToFront(id);
@@ -438,7 +376,7 @@ def utility_free_control(predicted_mu, current_sigma, history):
         }
 
         function dragMove(e) {
-            if (!isDragging) return;
+            if(!isDragging) return;
             activeWin.style.left = (e.clientX - dragOffset.x) + 'px';
             activeWin.style.top = (e.clientY - dragOffset.y) + 'px';
         }
@@ -449,54 +387,38 @@ def utility_free_control(predicted_mu, current_sigma, history):
             window.removeEventListener('mouseup', dragEnd);
         }
 
-        // --- COMPILER SIMULATION ---
-        function runCompiler() {
-            const bar = document.getElementById('compiler-bar');
-            const log = document.getElementById('compiler-log');
-            const overlay = document.getElementById('hull-compiler');
-            
-            // Reset
-            overlay.style.display = 'flex';
-            bar.style.width = '0%';
-            
-            const logs = ["Parsing document structure...", "Loading amsmath...", "Generating fonts...", "Processing TikZ graphics...", "Output written: hull_tactical.pdf"];
-            
-            let step = 0;
-            const interval = setInterval(() => {
-                if(step >= logs.length) {
-                    clearInterval(interval);
-                    setTimeout(() => overlay.style.display = 'none', 500);
-                } else {
-                    log.innerText = logs[step];
-                    bar.style.width = ((step + 1) * 20) + '%';
-                    step++;
-                }
-            }, 300);
-        }
+        // --- TERMINAL LOGIC ---
+        const cmd = document.getElementById('cmd');
+        const log = document.getElementById('term-log');
 
-        // --- TERMINAL ---
-        const cmdInput = document.getElementById('cmd');
-        const termOut = document.getElementById('term-out');
-        
-        cmdInput.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') {
-                const val = cmdInput.value.toLowerCase().trim();
-                termOut.innerHTML += `<div><span class="prompt">root@taha:~$</span> ${val}</div>`;
+        cmd.addEventListener('keydown', (e) => {
+            if(e.key === 'Enter') {
+                const val = cmd.value.toLowerCase().trim();
+                log.innerHTML += `<div><span class="prompt">root@taha:~$</span> ${val}</div>`;
                 
-                if(val === 'clear') termOut.innerHTML = '';
-                else if(val === 'ls') termOut.innerHTML += `<div style="color:#666">Hull_Tactical.tex  Thesis_RLRK.pdf  cv.pdf  profile.json</div>`;
-                else if(val === 'help') termOut.innerHTML += `<div style="color:#3b82f6">Commands: ls, open [file], clear, matrix</div>`;
-                else if(val === 'open hull') openWindow('hull', 200, 150);
-                else if(val === 'open thesis') openWindow('thesis', 250, 200);
-                else if(val === 'matrix') startMatrix();
-                else if(val !== '') termOut.innerHTML += `<div style="color:#ef4444">Command not found</div>`;
+                if(val === 'help') log.innerHTML += `<div style="color:#aaa">Commands: open [thesis|hull|cv], clear, date, whoami</div>`;
+                else if(val === 'open thesis') openWindow('thesis');
+                else if(val === 'open hull') openWindow('hull');
+                else if(val === 'open cv') openWindow('cv');
+                else if(val === 'clear') log.innerHTML = '';
+                else if(val === 'whoami') log.innerHTML += `<div>Taha Atlagh - Quant Developer</div>`;
+                else if(val !== '') log.innerHTML += `<div style="color:var(--red)">Command not found</div>`;
                 
-                cmdInput.value = '';
-                cmdInput.scrollIntoView();
+                cmd.value = '';
+                cmd.scrollIntoView();
             }
         });
 
-        // --- LORENZ BACKGROUND ---
+        // --- INIT & CLOCK ---
+        window.onload = () => {
+            initLorenz();
+            openWindow('terminal');
+            setInterval(() => {
+                document.getElementById('clock').innerText = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+            }, 1000);
+        };
+
+        // --- BACKGROUND VISUALIZATION (LORENZ) ---
         function initLorenz() {
             const canvas = document.getElementById('bg-canvas');
             const ctx = canvas.getContext('2d');
@@ -508,40 +430,28 @@ def utility_free_control(predicted_mu, current_sigma, history):
             const s=10, r=28, b=8/3, dt=0.01;
             const points = [];
             let angle = 0;
-            let mode = 'lorenz';
 
             function draw() {
-                if(mode === 'lorenz') {
-                    ctx.fillStyle = 'rgba(5, 5, 5, 0.1)'; ctx.fillRect(0,0,w,h);
-                    
-                    let dx = s*(y-x)*dt;
-                    let dy = (x*(r-z)-y)*dt;
-                    let dz = (x*y-b*z)*dt;
-                    x+=dx; y+=dy; z+=dz;
-                    points.push({x,y,z});
-                    if(points.length > 2500) points.shift();
+                ctx.fillStyle = 'rgba(5, 5, 5, 0.1)'; ctx.fillRect(0,0,w,h);
+                let dx = s*(y-x)*dt, dy = (x*(r-z)-y)*dt, dz = (x*y-b*z)*dt;
+                x+=dx; y+=dy; z+=dz;
+                points.push({x,y,z});
+                if(points.length > 2000) points.shift();
 
-                    ctx.beginPath();
-                    ctx.strokeStyle = '#3b82f6';
-                    ctx.lineWidth = 1;
-                    angle += 0.003;
+                ctx.beginPath();
+                ctx.strokeStyle = '#3b82f6';
+                ctx.lineWidth = 1.5;
+                angle += 0.002;
 
-                    const cx=w/2, cy=h/2, scale=18;
-                    for(let i=0; i<points.length-1; i++) {
-                        let p = points[i], pn = points[i+1];
-                        // Rotate Y
-                        let rx = p.x*Math.cos(angle) - p.z*Math.sin(angle);
-                        let rz = p.x*Math.sin(angle) + p.z*Math.cos(angle);
-                        let rxn = pn.x*Math.cos(angle) - pn.z*Math.sin(angle);
-                        let rzn = pn.x*Math.sin(angle) + pn.z*Math.cos(angle);
-                        // Project
-                        let f=400;
-                        let s1=f/(f+rz+60), s2=f/(f+rzn+60);
-                        ctx.moveTo(cx+rx*scale*s1, cy-p.y*scale*s1);
-                        ctx.lineTo(cx+rxn*scale*s2, cy-pn.y*scale*s2);
-                    }
-                    ctx.stroke();
+                const cx=w/2, cy=h/2, scale=15;
+                for(let i=0; i<points.length-1; i++) {
+                    let p=points[i], pn=points[i+1];
+                    let rx = p.x*Math.cos(angle) - p.z*Math.sin(angle);
+                    let rxn = pn.x*Math.cos(angle) - pn.z*Math.sin(angle);
+                    ctx.moveTo(cx+rx*scale, cy-p.y*scale);
+                    ctx.lineTo(cx+rxn*scale, cy-pn.y*scale);
                 }
+                ctx.stroke();
                 requestAnimationFrame(draw);
             }
             draw();
