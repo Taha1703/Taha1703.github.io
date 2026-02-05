@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Taha Atlagh | Quantitative Mathematics</title>
+    <style>
+        :root {
+            --bg-color: #ffffff;
+            --text-color: #1a1a1a;
+            --accent-color: #0056b3; /* Serious academic blue */
+            --secondary-text: #666;
+            --font-main: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            --font-mono: 'Courier New', Courier, monospace;
+        }
+
+        body {
+            font-family: var(--font-main);
+            line-height: 1.6;
+            color: var(--text-color);
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        /* Header Section */
+        header {
+            margin-bottom: 60px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 20px;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.2rem;
+            letter-spacing: -0.5px;
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            color: var(--secondary-text);
+            font-weight: 300;
+        }
+
+        .social-links {
+            margin-top: 15px;
+        }
+
+        .social-links a {
+            margin-right: 15px;
+            text-decoration: none;
+            color: var(--accent-color);
+            font-family: var(--font-mono);
+            font-size: 0.9rem;
+        }
+
+        /* Section Styling */
+        section {
+            margin-bottom: 50px;
+        }
+
+        h2 {
+            font-size: 1.5rem;
+            border-bottom: 2px solid #f4f4f4;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 0.9rem;
+            color: var(--secondary-text);
+        }
+
+        p {
+            margin-bottom: 15px;
+        }
+
+        /* Project Grid */
+        .project-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .project-card {
+            border: 1px solid #eee;
+            padding: 20px;
+            border-radius: 4px;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .project-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            border-color: var(--accent-color);
+        }
+
+        .project-title {
+            font-weight: bold;
+            margin-bottom: 8px;
+            display: block;
+            text-decoration: none;
+            color: var(--text-color);
+        }
+
+        .tags {
+            margin-top: 10px;
+            font-size: 0.75rem;
+            font-family: var(--font-mono);
+            color: var(--secondary-text);
+        }
+
+        .tag {
+            background: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            margin-right: 5px;
+        }
+
+        /* Resume/Timeline */
+        .timeline-item {
+            margin-bottom: 20px;
+        }
+        .timeline-header {
+            display: flex;
+            justify-content: space-between;
+            font-weight: bold;
+        }
+        .timeline-date {
+            font-family: var(--font-mono);
+            color: var(--secondary-text);
+            font-size: 0.9rem;
+        }
+
+        /* Math Styling */
+        code {
+            background: #f4f4f4;
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-family: var(--font-mono);
+            font-size: 0.9em;
+        }
+
+        @media (max-width: 600px) {
+            h1 { font-size: 2rem; }
+            .project-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Taha Atlagh</h1>
+        <div class="subtitle">M.Sc. Mathematics Student @ TU Berlin | Stochastic Processes & Numerical Analysis</div>
+        <div class="social-links">
+            <a href="mailto:atlaghtaha@gmail.com">Email</a>
+            <a href="https://linkedin.com/in/taha-atlagh" target="_blank">LinkedIn</a>
+            <a href="https://github.com/Taha1703" target="_blank">GitHub</a>
+            <a href="./cv_taha_atlagh.pdf" target="_blank">Resume (PDF)</a>
+        </div>
+    </header>
+
+    <section id="about">
+        <h2>About Me</h2>
+        <p>
+            I am a Master’s student in Mathematics at the <strong>Technische Universität Berlin</strong>, specializing in Stochastic Processes and Numerical Analysis[cite: 29, 30]. My passion lies at the intersection of rigorous mathematical theory and practical quantitative finance.
+        </p>
+        <p>
+            Previously, I graduated with a B.Sc. in Mathematics from <strong>RWTH Aachen</strong> (Final Grade: 2.1), where I wrote my thesis on Randomized Low-Rank Runge-Kutta Methods (Grade: 1.0)[cite: 31, 35]. I combine this academic background with hands-on experience in software development and data analysis.
+        </p>
+    </section>
+
+    <section id="projects">
+        <h2>Selected Projects & Research</h2>
+        <div class="project-grid">
+            
+            <div class="project-card">
+                <a href="#" class="project-title">Hull Tactical Market Prediction 📈</a>
+                <p>Developing quantitative models (LightGBM, Neural Nets) to forecast daily excess market returns under volatility constraints.</p>
+                <div class="tags">
+                    <span class="tag">Python</span>
+                    <span class="tag">LightGBM</span>
+                    <span class="tag">FinML</span>
+                </div>
+            </div>
+
+            <div class="project-card">
+                <a href="#" class="project-title">Randomized Low-Rank Runge-Kutta Methods 🧮</a>
+                <p>Implemented algorithms to solve large Matrix Differential Equations (e.g., Schrödinger equation) using low-rank approximation.</p>
+                <div class="tags">
+                    <span class="tag">MATLAB</span>
+                    <span class="tag">Numerical Analysis</span>
+                    <span class="tag">Thesis: 1.0</span>
+                </div>
+            </div>
+
+            <div class="project-card">
+                <a href="#" class="project-title">AI Mathematical Olympiad 🏆</a>
+                <p>Building an inference pipeline in Python to process LaTeX-formatted math problems and generate integer-constrained solutions.</p>
+                <div class="tags">
+                    <span class="tag">LLMs</span>
+                    <span class="tag">Symbolic Reasoning</span>
+                    <span class="tag">Kaggle</span>
+                </div>
+            </div>
+
+            <div class="project-card">
+                <a href="#" class="project-title">Interactive Numerical Visualizations 💻</a>
+                <p>Created JSXGraph-based web demos for estimating parameters of exponentially damped sine functions (Gauss-Newton method).</p>
+                <div class="tags">
+                    <span class="tag">JavaScript</span>
+                    <span class="tag">JSXGraph</span>
+                    <span class="tag">HTML5</span>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <section id="experience">
+        <h2>Experience</h2>
+        
+        <div class="timeline-item">
+            <div class="timeline-header">
+                <span>Company Consulting Team e. V.</span>
+                <span class="timeline-date">Oct 2025 – Present</span>
+            </div>
+            <div>Consultant (External Projects & Process Optimization)</div>
+        </div>
+
+        <div class="timeline-item">
+            <div class="timeline-header">
+                <span>IGPM, RWTH Aachen</span>
+                <span class="timeline-date">Mar 2025 – Oct 2025</span>
+            </div>
+            <div>Research Assistant (Numerical Methods & Visualization)</div>
+        </div>
+
+        <div class="timeline-item">
+            <div class="timeline-header">
+                <span>A&T Websolutions GbR</span>
+                <span class="timeline-date">Apr 2024 – Oct 2025</span>
+            </div>
+            <div>Founder & Lead Developer</div>
+        </div>
+
+    </section>
+
+    <footer>
+        <p style="font-size: 0.8rem; color: #888; margin-top: 50px;">
+            &copy; 2026 Taha Atlagh. Built with code, calculus, and coffee.
+        </p>
+    </footer>
+
+</body>
+</html>
