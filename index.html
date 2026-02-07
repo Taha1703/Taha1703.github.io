@@ -4,17 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Taha Atlagh | Quant Research</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         /* --- KERNEL & THEME --- */
         :root {
             --bg: #09090b;
-            --glass: rgba(18, 18, 23, 0.85);
+            --glass: rgba(18, 18, 23, 0.9);
             --border: rgba(255, 255, 255, 0.1);
             --text: #e4e4e7;
             --muted: #a1a1aa;
             --accent: #3b82f6; /* Science Blue */
-            --green: #10b981; /* Trading Profit */
-            --red: #ef4444;   /* Stop Loss */
+            --green: #10b981; /* Profit */
+            --red: #ef4444;   /* Loss */
             --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
             --font-ui: -apple-system, BlinkMacSystemFont, sans-serif;
         }
@@ -74,16 +75,21 @@
         /* --- IFRAME --- */
         iframe { width: 100%; height: 100%; border: none; background: #fff; }
 
+        /* --- EMAIL FORM --- */
+        .email-form { padding: 20px; font-family: var(--font-mono); display: flex; flex-direction: column; gap: 15px; color: var(--text); }
+        .email-input { background: rgba(0,0,0,0.3); border: 1px solid var(--border); color: var(--text); padding: 10px; font-family: inherit; outline: none; }
+        .email-input:focus { border-color: var(--accent); }
+        .send-btn { background: var(--accent); color: white; border: none; padding: 10px; cursor: pointer; font-weight: bold; }
+        .send-btn:hover { opacity: 0.9; }
+
         /* --- MARKET WIDGET --- */
         #market-widget {
-            position: absolute; bottom: 50px; right: 20px; width: 280px;
+            position: absolute; bottom: 50px; right: 20px; width: 300px; height: 160px;
             background: rgba(0,0,0,0.8); border: 1px solid var(--border); border-radius: 6px;
             padding: 10px; font-family: var(--font-mono); font-size: 0.75rem;
             z-index: 10; pointer-events: none;
+            display: flex; flex-direction: column;
         }
-        .order-row { display: flex; justify-content: space-between; margin-bottom: 2px; }
-        .bid-bar { height: 4px; background: var(--green); border-radius: 2px; }
-        .ask-bar { height: 4px; background: var(--red); border-radius: 2px; }
 
         /* --- TASKBAR --- */
         #taskbar {
@@ -109,11 +115,14 @@
         <div class="icon" onclick="openWindow('profile')">
             <div class="icon-img">👨‍💻</div><div class="icon-label">Profile_Sys</div>
         </div>
-        <div class="icon" onclick="openWindow('cv')">
+        <div class="icon" onclick="runTerminalCommand('cat cv_tahaatl-12.pdf')">
             <div class="icon-img">📄</div><div class="icon-label">CV_Resume</div>
         </div>
         <div class="icon" onclick="openWindow('thesis')">
             <div class="icon-img">🎓</div><div class="icon-label">Thesis_RLRK</div>
+        </div>
+        <div class="icon" onclick="openWindow('email')">
+            <div class="icon-img">✉️</div><div class="icon-label">Email_Me</div>
         </div>
         <div class="icon" onclick="window.open('https://www.linkedin.com/in/taha-atlagh-214170269/', '_blank')">
             <div class="icon-img">💼</div><div class="icon-label">LinkedIn</div>
@@ -152,28 +161,39 @@
         </div>
     </div>
 
-    <div id="win-profile" class="window" style="width: 400px; height: 500px; left: 250px; top: 100px;">
+    <div id="win-profile" class="window" style="width: 500px; height: 550px; left: 250px; top: 100px;">
         <div class="win-header" onmousedown="dragStart(event, 'win-profile')">
             <div class="win-title">User_Profile.sys</div>
             <div class="win-controls"><div class="win-btn close" onclick="closeWindow('win-profile')"></div></div>
         </div>
-        <div class="win-body" style="padding:20px; text-align:center; color:white; overflow-y:auto;">
-            <img src="https://github.com/identicons/taha.png" style="width:100px; border-radius:50%; border:2px solid var(--accent);">
-            <h2 style="margin:10px 0;">Taha Atlagh</h2>
-            <p style="color:var(--muted); font-size:0.9rem;">M.Sc. Mathematics @ TU Berlin</p>
+        <div class="win-body" style="padding:20px; text-align:center; color:white; overflow-y:auto; background:#18181b;">
+            <img src="https://github.com/identicons/taha.png" style="width:80px; border-radius:50%; border:2px solid var(--accent); margin-bottom:10px;">
+            <h3 style="margin:0;">Taha Atlagh</h3>
+            <p style="color:var(--muted); font-size:0.8rem; margin-top:5px;">M.Sc. Mathematics @ TU Berlin</p>
             
-            <div style="text-align:left; margin-top:20px; background:rgba(255,255,255,0.05); padding:15px; border-radius:5px; font-family:var(--font-mono); font-size:0.8rem;">
-                <div style="color:var(--green);">>> SYSTEM DIAGNOSTICS:</div>
-                <br>
-                <div>[OK] Stochastic Calculus</div>
-                <div>[OK] Numerical Analysis (Grade 1.0)</div>
-                <div>[OK] Python (Pandas, NumPy, LightGBM)</div>
-                <div>[OK] C++ & MATLAB</div>
-                <br>
-                <div style="color:var(--accent);">>> EXPERIENCE:</div>
-                <div>* Consultant @ Company Consulting Team</div>
-                <div>* Research Assistant @ IGPM RWTH</div>
+            <div style="margin-top:20px; height: 250px;">
+                <canvas id="skillsChart"></canvas>
             </div>
+
+            <div style="text-align:left; margin-top:20px; background:rgba(255,255,255,0.05); padding:15px; border-radius:5px; font-family:var(--font-mono); font-size:0.75rem;">
+                <div style="color:var(--accent);">>> LATEST LOGS:</div>
+                <div>* Research Assistant @ IGPM RWTH</div>
+                <div>* Consultant @ CCT</div>
+                <div>* Founder @ A&T Websolutions</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="win-email" class="window" style="width: 400px; height: 350px; left: 300px; top: 150px;">
+        <div class="win-header" onmousedown="dragStart(event, 'win-email')">
+            <div class="win-title">mail_client_v1.0</div>
+            <div class="win-controls"><div class="win-btn close" onclick="closeWindow('win-email')"></div></div>
+        </div>
+        <div class="win-body email-form">
+            <div style="font-size:0.8rem; color:var(--muted);">To: taha.atlagh@gmail.com</div>
+            <input type="text" class="email-input" placeholder="Subject">
+            <textarea class="email-input" style="flex:1; resize:none;" placeholder="Message..."></textarea>
+            <button class="send-btn" onclick="alert('Simulation: Email sent via Default Client'); window.location.href='mailto:taha.atlagh@gmail.com'">SEND ENCRYPTED</button>
         </div>
     </div>
 
@@ -182,7 +202,7 @@
             <div class="win-title">root@taha: ~</div>
             <div class="win-controls"><div class="win-btn close" onclick="closeWindow('win-terminal')"></div></div>
         </div>
-        <div class="win-body" style="padding:10px; font-family:var(--font-mono); font-size:0.9rem; overflow-y:auto;">
+        <div class="win-body" style="padding:10px; font-family:var(--font-mono); font-size:0.9rem; overflow-y:auto; scroll-behavior: smooth;">
             <div style="margin-bottom:10px;" id="term-intro"></div>
             <div id="term-output"></div>
             <div style="display:flex;">
@@ -193,17 +213,20 @@
     </div>
 
     <div id="market-widget">
-        <div style="border-bottom:1px solid #333; padding-bottom:5px; margin-bottom:5px; color:var(--accent);">L3 ORDER BOOK (SIMULATION)</div>
-        <div id="order-book"></div>
+        <div style="border-bottom:1px solid #333; padding-bottom:5px; margin-bottom:5px; color:var(--accent); display:flex; justify-content:space-between;">
+            <span>S&P 500 (SIM)</span>
+            <span id="market-price" style="color:var(--green);">4,120.50</span>
+        </div>
+        <canvas id="marketChart" width="280" height="100"></canvas>
     </div>
 
     <div id="taskbar">
         <div class="start-btn">TAHA</div>
         <div class="ticker">
             <span>SYS: ONLINE</span> &nbsp;|&nbsp; 
-            <span style="color:var(--green);">THESIS: 1.0 (EXCELLENT)</span> &nbsp;|&nbsp; 
-            <span style="color:var(--accent);">STRATEGY: SEEKING ALPHA</span> &nbsp;|&nbsp; 
-            <span>LOCATION: BERLIN</span>
+            <span style="color:var(--green);">THESIS: GRADE 1.0</span> &nbsp;|&nbsp; 
+            <span style="color:var(--accent);">STATUS: SEEKING ALPHA</span> &nbsp;|&nbsp; 
+            <span>BERLIN, DE</span>
         </div>
         <div id="clock" style="font-weight:bold;">00:00</div>
     </div>
@@ -228,14 +251,14 @@
                 div.innerText = bootLines[lineIndex];
                 bootScreen.appendChild(div);
                 lineIndex++;
-                setTimeout(runBoot, 300); 
+                setTimeout(runBoot, 200); 
             } else {
                 setTimeout(() => {
                     bootScreen.style.opacity = 0;
                     setTimeout(() => { 
                         bootScreen.style.display = 'none'; 
                         openWindow('terminal'); 
-                        simulateMarket();
+                        initCharts(); // Init Charts after boot
                     }, 500);
                 }, 800);
             }
@@ -265,6 +288,34 @@
             const iframe = document.getElementById(id).querySelector('iframe');
             if (iframe) iframe.src = iframe.src;
         }
+
+        // --- TERMINAL HACK AUTOMATION ---
+        function runTerminalCommand(command) {
+            // 1. Open Terminal if not open
+            openWindow('terminal');
+            
+            // 2. Locate Input
+            const input = document.getElementById('cmd-input');
+            input.focus();
+            
+            // 3. Type the command
+            let i = 0;
+            input.value = ""; // Clear
+            function typeCmd() {
+                if (i < command.length) {
+                    input.value += command.charAt(i);
+                    i++;
+                    setTimeout(typeCmd, 50); // Typing speed
+                } else {
+                    // 4. Execute
+                    setTimeout(() => {
+                        handleCommand(command);
+                        input.value = "";
+                    }, 300);
+                }
+            }
+            typeCmd();
+        }
         
         // --- TYPEWRITER ---
         function typeWriter(text, element) {
@@ -274,7 +325,7 @@
                 if (i < text.length) {
                     element.innerHTML += text.charAt(i) === '\n' ? '<br>' : text.charAt(i);
                     i++;
-                    setTimeout(type, 30);
+                    setTimeout(type, 20);
                 }
             }
             type();
@@ -305,60 +356,115 @@
             document.removeEventListener('mouseup', dragEnd);
         }
 
-        // --- TERMINAL ---
+        // --- TERMINAL LOGIC ---
         const termInput = document.getElementById('cmd-input');
         const termOutput = document.getElementById('term-output');
+
+        function handleCommand(cmd) {
+            termOutput.innerHTML += `<div><span style="color:#10b981">➜</span> ${cmd}</div>`;
+            cmd = cmd.toLowerCase().trim();
+
+            if(cmd === 'ls') {
+                termOutput.innerHTML += `<div>cv_tahaatl-12.pdf  thesis_rlrk.pdf  github_link.lnk</div>`;
+            }
+            else if(cmd === 'help') {
+                termOutput.innerHTML += `<div>Available: ls, cat [file], clear, whoami</div>`;
+            }
+            else if(cmd === 'whoami') {
+                termOutput.innerHTML += `<div>root (Taha Atlagh)</div>`;
+            }
+            else if(cmd === 'clear') {
+                termOutput.innerHTML = '';
+            }
+            else if(cmd.includes('cv') && (cmd.startsWith('cat') || cmd.startsWith('open'))) {
+                openWindow('cv');
+                termOutput.innerHTML += `<div>Opening cv module...</div>`;
+            }
+            else if(cmd.includes('thesis') && (cmd.startsWith('cat') || cmd.startsWith('open'))) {
+                openWindow('thesis');
+                termOutput.innerHTML += `<div>Opening Research Thesis...</div>`;
+            }
+            else {
+                termOutput.innerHTML += `<div style="color:#ef4444">Command not found: ${cmd}</div>`;
+            }
+            termOutput.scrollTop = termOutput.scrollHeight;
+        }
+
         termInput.addEventListener('keydown', (e) => {
             if(e.key === 'Enter') {
-                const cmd = termInput.value.toLowerCase().trim();
-                termOutput.innerHTML += `<div><span style="color:#10b981">➜</span> ${cmd}</div>`;
-                
-                if(cmd === 'ls') {
-                    termOutput.innerHTML += `<div>cv_tahaatl-12.pdf  thesis_rlrk.pdf  github_link.lnk</div>`;
-                }
-                else if(cmd === 'help') {
-                    termOutput.innerHTML += `<div>Available: ls, cat [file], clear, whoami</div>`;
-                }
-                else if(cmd === 'whoami') {
-                    termOutput.innerHTML += `<div>root (Taha Atlagh)</div>`;
-                }
-                else if(cmd === 'clear') {
-                    termOutput.innerHTML = '';
-                }
-                else if(cmd.includes('cv') && (cmd.startsWith('cat') || cmd.startsWith('open'))) {
-                    openWindow('cv');
-                    termOutput.innerHTML += `<div>Opening cv module...</div>`;
-                }
-                else if(cmd.includes('thesis') && (cmd.startsWith('cat') || cmd.startsWith('open'))) {
-                    openWindow('thesis');
-                    termOutput.innerHTML += `<div>Opening Research Thesis...</div>`;
-                }
-                else {
-                    termOutput.innerHTML += `<div style="color:#ef4444">Command not found: ${cmd}</div>`;
-                }
+                handleCommand(termInput.value);
                 termInput.value = '';
-                termInput.scrollIntoView();
             }
         });
 
-        // --- MARKET SIMULATION ---
-        function simulateMarket() {
-            const book = document.getElementById('order-book');
-            function update() {
-                let html = '';
-                for(let i=0; i<5; i++) {
-                    const width = Math.floor(Math.random() * 80) + 10;
-                    html += `<div class="order-row"><span style="color:#ef4444">${(100.5 + i*0.1).toFixed(2)}</span><div class="ask-bar" style="width:${width}px"></div></div>`;
+        // --- CHARTS & VISUALS ---
+        function initCharts() {
+            // 1. Radar Chart (Skills)
+            const ctxSkill = document.getElementById('skillsChart').getContext('2d');
+            new Chart(ctxSkill, {
+                type: 'radar',
+                data: {
+                    labels: ['Stochastic Calc', 'C++', 'Python', 'NumPy', 'ML/AI', 'Communication'],
+                    datasets: [{
+                        label: 'Skill Proficiency',
+                        data: [95, 80, 95, 90, 85, 90],
+                        backgroundColor: 'rgba(59, 130, 246, 0.2)',
+                        borderColor: '#3b82f6',
+                        pointBackgroundColor: '#3b82f6',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    scales: {
+                        r: {
+                            angleLines: { color: 'rgba(255,255,255,0.1)' },
+                            grid: { color: 'rgba(255,255,255,0.1)' },
+                            pointLabels: { color: '#a1a1aa', font: {family: 'monospace'} },
+                            ticks: { display: false, backdropColor: 'transparent' }
+                        }
+                    },
+                    plugins: { legend: { display: false } }
                 }
-                html += `<div style="border-top:1px dashed #333; margin:2px 0;"></div>`;
-                for(let i=0; i<5; i++) {
-                    const width = Math.floor(Math.random() * 80) + 10;
-                    html += `<div class="order-row"><span style="color:#10b981">${(100.4 - i*0.1).toFixed(2)}</span><div class="bid-bar" style="width:${width}px"></div></div>`;
-                }
-                book.innerHTML = html;
-                setTimeout(update, 500);
+            });
+
+            // 2. Market Widget (Random Walk)
+            const ctxMarket = document.getElementById('marketChart').getContext('2d');
+            const prices = Array(50).fill(4120);
+            let currentPrice = 4120;
+            
+            function drawMarket() {
+                // Random Walk Math
+                const change = (Math.random() - 0.5) * 2; 
+                currentPrice += change;
+                prices.push(currentPrice);
+                prices.shift();
+
+                // Update DOM text
+                const el = document.getElementById('market-price');
+                el.innerText = currentPrice.toFixed(2);
+                el.style.color = change >= 0 ? '#10b981' : '#ef4444';
+
+                // Draw
+                ctxMarket.clearRect(0,0,300,100);
+                ctxMarket.beginPath();
+                ctxMarket.strokeStyle = change >= 0 ? '#10b981' : '#ef4444';
+                ctxMarket.lineWidth = 2;
+                
+                const min = Math.min(...prices);
+                const max = Math.max(...prices);
+                const range = max - min || 1;
+
+                prices.forEach((p, i) => {
+                    const x = (i / 50) * 280;
+                    const y = 100 - ((p - min) / range) * 90;
+                    if(i===0) ctxMarket.moveTo(x,y);
+                    else ctxMarket.lineTo(x,y);
+                });
+                ctxMarket.stroke();
+                
+                setTimeout(drawMarket, 100);
             }
-            update();
+            drawMarket();
         }
 
         // --- LORENZ ATTRACTOR BG ---
