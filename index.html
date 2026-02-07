@@ -112,16 +112,16 @@
     <canvas id="bg-canvas"></canvas>
 
     <div class="desktop-icons">
-        <div class="icon" onclick="openWindow('profile')">
+        <div class="icon" onclick="runTerminalCommand('cat profile_sys.txt')">
             <div class="icon-img">👨‍💻</div><div class="icon-label">Profile_Sys</div>
         </div>
         <div class="icon" onclick="runTerminalCommand('cat cv_tahaatl-12.pdf')">
             <div class="icon-img">📄</div><div class="icon-label">CV_Resume</div>
         </div>
-        <div class="icon" onclick="openWindow('thesis')">
+        <div class="icon" onclick="runTerminalCommand('cat thesis_rlrk.pdf')">
             <div class="icon-img">🎓</div><div class="icon-label">Thesis_RLRK</div>
         </div>
-        <div class="icon" onclick="openWindow('email')">
+        <div class="icon" onclick="runTerminalCommand('mail -s \'Hello\' atlaghtaha')">
             <div class="icon-img">✉️</div><div class="icon-label">Email_Me</div>
         </div>
         <div class="icon" onclick="window.open('https://www.linkedin.com/in/taha-atlagh-214170269/', '_blank')">
@@ -190,10 +190,10 @@
             <div class="win-controls"><div class="win-btn close" onclick="closeWindow('win-email')"></div></div>
         </div>
         <div class="win-body email-form">
-            <div style="font-size:0.8rem; color:var(--muted);">To: taha.atlagh@gmail.com</div>
+            <div style="font-size:0.8rem; color:var(--muted);">To: atlaghtaha@gmail.com</div>
             <input type="text" class="email-input" placeholder="Subject">
             <textarea class="email-input" style="flex:1; resize:none;" placeholder="Message..."></textarea>
-            <button class="send-btn" onclick="alert('Simulation: Email sent via Default Client'); window.location.href='mailto:taha.atlagh@gmail.com'">SEND ENCRYPTED</button>
+            <button class="send-btn" onclick="alert('Redirecting to your default mail app...'); window.location.href='mailto:atlaghtaha@gmail.com'">SEND ENCRYPTED</button>
         </div>
     </div>
 
@@ -224,8 +224,8 @@
         <div class="start-btn">TAHA</div>
         <div class="ticker">
             <span>SYS: ONLINE</span> &nbsp;|&nbsp; 
-            <span style="color:var(--green);">THESIS: GRADE 1.0</span> &nbsp;|&nbsp; 
-            <span style="color:var(--accent);">STATUS: SEEKING ALPHA</span> &nbsp;|&nbsp; 
+            <span style="color:var(--green);">THESIS: NUMERICAL ANALYSIS</span> &nbsp;|&nbsp; 
+            <span style="color:var(--accent);">CURRENT: M.SC. MATHEMATICS</span> &nbsp;|&nbsp; 
             <span>BERLIN, DE</span>
         </div>
         <div id="clock" style="font-weight:bold;">00:00</div>
@@ -258,7 +258,7 @@
                     setTimeout(() => { 
                         bootScreen.style.display = 'none'; 
                         openWindow('terminal'); 
-                        initCharts(); // Init Charts after boot
+                        initCharts(); 
                     }, 500);
                 }, 800);
             }
@@ -291,23 +291,18 @@
 
         // --- TERMINAL HACK AUTOMATION ---
         function runTerminalCommand(command) {
-            // 1. Open Terminal if not open
             openWindow('terminal');
-            
-            // 2. Locate Input
             const input = document.getElementById('cmd-input');
             input.focus();
             
-            // 3. Type the command
             let i = 0;
-            input.value = ""; // Clear
+            input.value = ""; 
             function typeCmd() {
                 if (i < command.length) {
                     input.value += command.charAt(i);
                     i++;
-                    setTimeout(typeCmd, 50); // Typing speed
+                    setTimeout(typeCmd, 40); // Tipp-Geschwindigkeit
                 } else {
-                    // 4. Execute
                     setTimeout(() => {
                         handleCommand(command);
                         input.value = "";
@@ -317,7 +312,6 @@
             typeCmd();
         }
         
-        // --- TYPEWRITER ---
         function typeWriter(text, element) {
             let i = 0;
             element.innerHTML = '';
@@ -368,7 +362,7 @@
                 termOutput.innerHTML += `<div>cv_tahaatl-12.pdf  thesis_rlrk.pdf  github_link.lnk</div>`;
             }
             else if(cmd === 'help') {
-                termOutput.innerHTML += `<div>Available: ls, cat [file], clear, whoami</div>`;
+                termOutput.innerHTML += `<div>Available: ls, cat [file], clear, whoami, mail</div>`;
             }
             else if(cmd === 'whoami') {
                 termOutput.innerHTML += `<div>root (Taha Atlagh)</div>`;
@@ -376,13 +370,22 @@
             else if(cmd === 'clear') {
                 termOutput.innerHTML = '';
             }
-            else if(cmd.includes('cv') && (cmd.startsWith('cat') || cmd.startsWith('open'))) {
+            // LOGIK FÜR ALLE DATEIEN / FENSTER
+            else if(cmd.includes('cv') || cmd.includes('resume')) {
                 openWindow('cv');
                 termOutput.innerHTML += `<div>Opening cv module...</div>`;
             }
-            else if(cmd.includes('thesis') && (cmd.startsWith('cat') || cmd.startsWith('open'))) {
+            else if(cmd.includes('thesis')) {
                 openWindow('thesis');
                 termOutput.innerHTML += `<div>Opening Research Thesis...</div>`;
+            }
+            else if(cmd.includes('profile')) {
+                openWindow('profile');
+                termOutput.innerHTML += `<div>Accessing System Profile...</div>`;
+            }
+            else if(cmd.includes('mail')) {
+                openWindow('email');
+                termOutput.innerHTML += `<div>Starting Mail Client...</div>`;
             }
             else {
                 termOutput.innerHTML += `<div style="color:#ef4444">Command not found: ${cmd}</div>`;
@@ -397,9 +400,8 @@
             }
         });
 
-        // --- CHARTS & VISUALS ---
+        // --- CHARTS ---
         function initCharts() {
-            // 1. Radar Chart (Skills)
             const ctxSkill = document.getElementById('skillsChart').getContext('2d');
             new Chart(ctxSkill, {
                 type: 'radar',
@@ -427,24 +429,20 @@
                 }
             });
 
-            // 2. Market Widget (Random Walk)
             const ctxMarket = document.getElementById('marketChart').getContext('2d');
             const prices = Array(50).fill(4120);
             let currentPrice = 4120;
             
             function drawMarket() {
-                // Random Walk Math
                 const change = (Math.random() - 0.5) * 2; 
                 currentPrice += change;
                 prices.push(currentPrice);
                 prices.shift();
 
-                // Update DOM text
                 const el = document.getElementById('market-price');
                 el.innerText = currentPrice.toFixed(2);
                 el.style.color = change >= 0 ? '#10b981' : '#ef4444';
 
-                // Draw
                 ctxMarket.clearRect(0,0,300,100);
                 ctxMarket.beginPath();
                 ctxMarket.strokeStyle = change >= 0 ? '#10b981' : '#ef4444';
@@ -461,7 +459,6 @@
                     else ctxMarket.lineTo(x,y);
                 });
                 ctxMarket.stroke();
-                
                 setTimeout(drawMarket, 100);
             }
             drawMarket();
