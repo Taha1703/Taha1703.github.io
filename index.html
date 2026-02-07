@@ -22,7 +22,7 @@
         * { box-sizing: border-box; }
         body { margin: 0; background: var(--bg); color: var(--text); font-family: var(--font-ui); overflow: hidden; height: 100vh; user-select: none; }
 
-        /* --- BOOT SCREEN (NEW FEATURE) --- */
+        /* --- BOOT SCREEN --- */
         #boot-screen {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: #000; z-index: 9999;
@@ -74,11 +74,6 @@
         /* --- IFRAME --- */
         iframe { width: 100%; height: 100%; border: none; background: #fff; }
 
-        /* --- CODE VIEWER --- */
-        .code-view { padding: 20px; font-family: var(--font-mono); font-size: 0.85rem; color: #a9b7c6; background: #2b2b2b; overflow-y: auto; }
-        .kw { color: #cc7832; font-weight: bold; } .fn { color: #ffc66d; } 
-        .str { color: #6a8759; } .num { color: #6897bb; } .com { color: #808080; }
-
         /* --- MARKET WIDGET --- */
         #market-widget {
             position: absolute; bottom: 50px; right: 20px; width: 280px;
@@ -120,8 +115,11 @@
         <div class="icon" onclick="openWindow('thesis')">
             <div class="icon-img">🎓</div><div class="icon-label">Thesis_RLRK</div>
         </div>
-        <div class="icon" onclick="openWindow('hull')">
-            <div class="icon-img">📈</div><div class="icon-label">Hull_Tactical</div>
+        <div class="icon" onclick="window.open('https://www.linkedin.com/in/taha-atlagh-214170269/', '_blank')">
+            <div class="icon-img">💼</div><div class="icon-label">LinkedIn</div>
+        </div>
+        <div class="icon" onclick="window.open('https://github.com/Taha1703', '_blank')">
+            <div class="icon-img">🐙</div><div class="icon-label">GitHub_Rep</div>
         </div>
         <div class="icon" onclick="openWindow('terminal')">
             <div class="icon-img">_></div><div class="icon-label">Terminal</div>
@@ -151,33 +149,6 @@
         </div>
         <div class="win-body">
             <iframe src="thesis_rlrk.pdf"></iframe>
-        </div>
-    </div>
-
-    <div id="win-hull" class="window" style="width: 850px; height: 650px; left: 200px; top: 80px;">
-        <div class="win-header" onmousedown="dragStart(event, 'win-hull')">
-            <div class="win-title">Project: Hull Tactical Market Prediction</div>
-            <div class="win-controls"><div class="win-btn close" onclick="closeWindow('win-hull')"></div></div>
-        </div>
-        <div style="background: #1e1e1e; padding: 5px 10px; display: flex; gap: 10px; border-bottom: 1px solid #333;">
-            <button onclick="switchTab('hull-code')" style="background:none; border:none; color:var(--text); cursor:pointer;">Source Code (Python)</button>
-        </div>
-        <div id="hull-code" class="win-body code-view">
-<pre>
-<span class="kw">def</span> <span class="fn">utility_free_control</span>(predicted_mu, current_sigma, history):
-    <span class="com"># Utility-free approach maximizing geometric growth</span>
-    raw_opt = predicted_mu / (current_sigma**2 + 1e-6)
-    
-    <span class="com"># Robust Z-Score (Median & IQR)</span>
-    w_median = np.median(history[-252:])
-    iqr = np.percentile(history, 75) - np.percentile(history, 25)
-    z_score = (raw_opt - w_median) / (iqr * 0.74)
-    
-    <span class="com"># Crisis Mode: Halve risk if daily vol > 2%</span>
-    scaling = <span class="num">0.5</span> <span class="kw">if</span> current_sigma > <span class="num">0.02</span> <span class="kw">else</span> <span class="num">0.8</span>
-    
-    <span class="kw">return</span> <span class="num">1.0</span> + np.tanh(z_score * scaling)
-</pre>
         </div>
     </div>
 
@@ -238,7 +209,7 @@
     </div>
 
     <script>
-        // --- BOOT SEQUENCE (NEW FEATURE) ---
+        // --- BOOT SEQUENCE ---
         const bootScreen = document.getElementById('boot-screen');
         const bootLines = [
             "[OK] Loading Kernel v4.0.2...",
@@ -257,20 +228,18 @@
                 div.innerText = bootLines[lineIndex];
                 bootScreen.appendChild(div);
                 lineIndex++;
-                setTimeout(runBoot, 300); // Speed of boot lines
+                setTimeout(runBoot, 300); 
             } else {
                 setTimeout(() => {
                     bootScreen.style.opacity = 0;
                     setTimeout(() => { 
                         bootScreen.style.display = 'none'; 
-                        openWindow('terminal'); // Open terminal after boot
+                        openWindow('terminal'); 
                         simulateMarket();
                     }, 500);
                 }, 800);
             }
         }
-        
-        // Start Boot on Load
         window.onload = runBoot;
 
         setInterval(() => {
@@ -287,19 +256,17 @@
             win.classList.add('active');
             win.style.zIndex = ++zIndex;
 
-            // Trigger typing effect if terminal opens
             if (id === 'terminal' && document.getElementById('term-intro').innerHTML === '') {
                 typeWriter("Welcome to TahaOS v4.0 [Stable]\nType 'help' for commands.", document.getElementById('term-intro'));
             }
         }
         function closeWindow(id) {
             document.getElementById(id).classList.remove('open');
-            // Reset iframe to fix PDF display bugs on reopen
             const iframe = document.getElementById(id).querySelector('iframe');
             if (iframe) iframe.src = iframe.src;
         }
         
-        // --- TYPEWRITER EFFECT (NEW FEATURE) ---
+        // --- TYPEWRITER ---
         function typeWriter(text, element) {
             let i = 0;
             element.innerHTML = '';
@@ -338,8 +305,6 @@
             document.removeEventListener('mouseup', dragEnd);
         }
 
-        window.switchTab = function(tabId) {} // Legacy placeholder
-
         // --- TERMINAL ---
         const termInput = document.getElementById('cmd-input');
         const termOutput = document.getElementById('term-output');
@@ -349,7 +314,7 @@
                 termOutput.innerHTML += `<div><span style="color:#10b981">➜</span> ${cmd}</div>`;
                 
                 if(cmd === 'ls') {
-                    termOutput.innerHTML += `<div>cv_tahaatl-12.pdf  thesis_rlrk.pdf  hull_tactical.py</div>`;
+                    termOutput.innerHTML += `<div>cv_tahaatl-12.pdf  thesis_rlrk.pdf  github_link.lnk</div>`;
                 }
                 else if(cmd === 'help') {
                     termOutput.innerHTML += `<div>Available: ls, cat [file], clear, whoami</div>`;
