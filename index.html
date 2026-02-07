@@ -16,7 +16,6 @@
             --green: #10b981; /* Trading Profit */
             --red: #ef4444;   /* Stop Loss */
             --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
-            --font-serif: 'Times New Roman', serif;
             --font-ui: -apple-system, BlinkMacSystemFont, sans-serif;
         }
 
@@ -51,27 +50,24 @@
             display: flex; justify-content: space-between; align-items: center; cursor: grab;
         }
         .win-header:active { cursor: grabbing; }
-        .win-title { font-size: 0.85rem; font-family: var(--font-mono); color: var(--muted); }
+        .win-title { font-size: 0.85rem; font-family: var(--font-mono); color: var(--muted); display: flex; align-items: center; gap: 10px;}
         .win-controls { display: flex; gap: 8px; }
         .win-btn { width: 12px; height: 12px; border-radius: 50%; cursor: pointer; }
         .close { background: var(--red); } .min { background: var(--yellow); } .max { background: var(--green); }
-
-        .win-body { flex: 1; overflow-y: auto; position: relative; }
-
-        /* --- PAPER VIEWER (THESIS) --- */
-        .paper-view { padding: 40px; background: #fff; color: #111; font-family: var(--font-serif); line-height: 1.6; }
-        .paper-meta { border-bottom: 1px solid #eee; padding-bottom: 20px; margin-bottom: 30px; text-align: center; }
-        .paper-h1 { font-weight: bold; font-size: 1.4rem; margin-top: 30px; margin-bottom: 10px; color: #000; }
-        .paper-p { margin-bottom: 15px; text-align: justify; font-size: 1rem; }
-        .paper-math { background: #f5f7fa; padding: 15px; margin: 20px 0; text-align: center; font-family: var(--font-mono); font-size: 0.9rem; color: #003366; border-radius: 4px; }
         
+        /* Download Link Style in Header */
+        .dl-link { color: var(--accent); text-decoration: none; font-size: 0.75rem; border: 1px solid var(--border); padding: 2px 6px; border-radius: 4px; transition: 0.2s;}
+        .dl-link:hover { background: var(--accent); color: white; }
+
+        .win-body { flex: 1; overflow: hidden; position: relative; }
+
+        /* --- IFRAME FOR PDF --- */
+        iframe { width: 100%; height: 100%; border: none; background: #fff; }
+
         /* --- CODE VIEWER --- */
-        .code-view { padding: 20px; font-family: var(--font-mono); font-size: 0.85rem; color: #a9b7c6; background: #2b2b2b; }
-        .kw { color: #cc7832; font-weight: bold; } /* Keyword */
-        .fn { color: #ffc66d; } /* Function */
-        .str { color: #6a8759; } /* String */
-        .num { color: #6897bb; } /* Number */
-        .com { color: #808080; } /* Comment */
+        .code-view { padding: 20px; font-family: var(--font-mono); font-size: 0.85rem; color: #a9b7c6; background: #2b2b2b; overflow-y: auto; }
+        .kw { color: #cc7832; font-weight: bold; } .fn { color: #ffc66d; } 
+        .str { color: #6a8759; } .num { color: #6897bb; } .com { color: #808080; }
 
         /* --- MARKET WIDGET --- */
         #market-widget {
@@ -102,6 +98,9 @@
         <div class="icon" onclick="openWindow('profile')">
             <div class="icon-img">👨‍💻</div><div class="icon-label">Profile_Sys</div>
         </div>
+        <div class="icon" onclick="openWindow('cv')">
+            <div class="icon-img">📄</div><div class="icon-label">CV_Resume</div>
+        </div>
         <div class="icon" onclick="openWindow('thesis')">
             <div class="icon-img">🎓</div><div class="icon-label">Thesis_RLRK</div>
         </div>
@@ -113,72 +112,41 @@
         </div>
     </div>
 
-    <div id="win-thesis" class="window" style="width: 800px; height: 600px; left: 100px; top: 50px;">
-        <div class="win-header" onmousedown="dragStart(event, 'win-thesis')">
-            <div class="win-title">Bachelor_Thesis_RLRK.pdf [Read-Only]</div>
-            <div class="win-controls"><div class="win-btn close" onclick="closeWindow('win-thesis')"></div></div>
+    <div id="win-cv" class="window" style="width: 700px; height: 800px; left: 120px; top: 40px;">
+        <div class="win-header" onmousedown="dragStart(event, 'win-cv')">
+            <div class="win-title">
+                cv.pdf [Read-Only]
+                <a href="cv.pdf" download class="dl-link">⬇ Save</a>
+            </div>
+            <div class="win-controls"><div class="win-btn close" onclick="closeWindow('win-cv')"></div></div>
         </div>
-        <div class="win-body paper-view">
-            <div class="paper-meta">
-                <h1>Randomized Low-Rank Runge-Kutta Methods</h1>
-                <p><strong>Taha Atlagh</strong> • RWTH Aachen University (IGPM)</p>
-                <p style="color: var(--accent);">Grade: 1.0 (Excellent) • Supervised by Prof. Dr. Bachmayr</p>
-            </div>
-
-            <div class="paper-h1">Abstract</div>
-            <div class="paper-p">
-                This thesis addresses the computational challenges of solving high-dimensional matrix differential equations $\dot{A}(t) = F(A(t))$, where standard integrators fail due to $O(n^2)$ memory constraints. We analyze Randomized Low-Rank Runge-Kutta (RLRK) methods, which constrain the solution to a low-rank manifold $\mathcal{M}_r$ using the generalized Nyström approximation.
-            </div>
-
-            <div class="paper-h1">3. Methodology: Randomized Sketching</div>
-            <div class="paper-p">
-                Instead of a deterministic SVD, we employ randomized sketching. The algorithm constructs a subspace approximation by multiplying the data matrix $A$ with a random test matrix $\Omega$.
-            </div>
-            <div class="paper-math">
-                Y = A\Omega, \quad \text{where } \Omega \text{ is Gaussian or SRFT}
-            </div>
-            <div class="paper-p">
-                <strong>Key Innovation:</strong> Using Subsampled Randomized Fourier Transforms (SRFT) reduces sketching complexity from $O(mn^2)$ to $O(mn \log n)$. Our benchmarks confirm SRFT significantly outperforms dense Gaussian matrices for $n > 8192$.
-            </div>
-
-            <div class="paper-h1">5. Numerical Experiments</div>
-            <div class="paper-p">
-                <strong>Lyapunov Equation:</strong> RLRK4 maintains 4th-order convergence even when Projected RK4 (PRK) collapses due to large projection errors in high-perturbation regimes ($\alpha=1$).
-            </div>
-            <div class="paper-p">
-                <strong>Allen-Cahn Equation:</strong> For stiff problems, the fixed-step RLRK4 method proved more stable than the adaptive DOPRI45, which suffered from numerical noise.
-            </div>
+        <div class="win-body">
+            <iframe src="cv.pdf"></iframe>
         </div>
     </div>
 
-    <div id="win-hull" class="window" style="width: 850px; height: 650px; left: 150px; top: 80px;">
+    <div id="win-thesis" class="window" style="width: 800px; height: 600px; left: 150px; top: 60px;">
+        <div class="win-header" onmousedown="dragStart(event, 'win-thesis')">
+            <div class="win-title">
+                thesis_rlrk.pdf
+                <a href="thesis_rlrk.pdf" download class="dl-link">⬇ Save</a>
+            </div>
+            <div class="win-controls"><div class="win-btn close" onclick="closeWindow('win-thesis')"></div></div>
+        </div>
+        <div class="win-body">
+            <iframe src="thesis_rlrk.pdf"></iframe>
+        </div>
+    </div>
+
+    <div id="win-hull" class="window" style="width: 850px; height: 650px; left: 200px; top: 80px;">
         <div class="win-header" onmousedown="dragStart(event, 'win-hull')">
             <div class="win-title">Project: Hull Tactical Market Prediction</div>
             <div class="win-controls"><div class="win-btn close" onclick="closeWindow('win-hull')"></div></div>
         </div>
         <div style="background: #1e1e1e; padding: 5px 10px; display: flex; gap: 10px; border-bottom: 1px solid #333;">
-            <button onclick="switchTab('hull-paper')" style="background:none; border:none; color:var(--accent); cursor:pointer;">Strategy Paper (LaTeX)</button>
             <button onclick="switchTab('hull-code')" style="background:none; border:none; color:var(--text); cursor:pointer;">Source Code (Python)</button>
         </div>
-
-        <div id="hull-paper" class="win-body paper-view" style="display:block;">
-            <div id="compiler-overlay" style="position:absolute; inset:0; background:#000; color:var(--green); display:flex; align-items:center; justify-content:center; z-index:10; font-family:monospace;">
-                > Compiling LaTeX... [||||||    ]
-            </div>
-            
-            <div class="paper-title">Hull Tactical: Market Prediction</div>
-            <div class="paper-math">r_{excess} = r_{SPY} - r_{risk\_free}</div>
-            <div class="paper-p">
-                <strong>Objective:</strong> Forecast daily excess returns under a 120% volatility constraint ($ \sigma_{Strat} \le 1.2 \cdot \sigma_{Market} $).
-            </div>
-            <div class="paper-h1">4. Implementation Strategy</div>
-            <div class="paper-p">
-                Our final submission utilizes an ensemble of <strong>LightGBM</strong> regressors. The architecture is designed to be robust against regime shifts.
-            </div>
-            <div class="paper-math">w_i = \frac{1}{\sigma_{t-1} + \epsilon}, \quad \text{clipped at 99th percentile}</div>
-        </div>
-
-        <div id="hull-code" class="win-body code-view" style="display:none;">
+        <div id="hull-code" class="win-body code-view">
 <pre>
 <span class="kw">def</span> <span class="fn">utility_free_control</span>(predicted_mu, current_sigma, history):
     <span class="com"># Utility-free approach maximizing geometric growth</span>
@@ -193,27 +161,16 @@
     scaling = <span class="num">0.5</span> <span class="kw">if</span> current_sigma > <span class="num">0.02</span> <span class="kw">else</span> <span class="num">0.8</span>
     
     <span class="kw">return</span> <span class="num">1.0</span> + np.tanh(z_score * scaling)
-
-<span class="kw">def</span> <span class="fn">train_ensemble</span>(df):
-    <span class="str">"""Trains 3 LightGBM models with inverse vola weighting"""</span>
-    models = []
-    seeds = [<span class="num">42</span>, <span class="num">2024</span>, <span class="num">999</span>]
-    
-    <span class="kw">for</span> seed <span class="kw">in</span> seeds:
-        params['seed'] = seed
-        model = lgb.train(params, train_set, num_boost_round=<span class="num">800</span>)
-        models.append(model)
-    <span class="kw">return</span> models
 </pre>
         </div>
     </div>
 
-    <div id="win-profile" class="window" style="width: 400px; height: 500px; left: 200px; top: 100px;">
+    <div id="win-profile" class="window" style="width: 400px; height: 500px; left: 250px; top: 100px;">
         <div class="win-header" onmousedown="dragStart(event, 'win-profile')">
             <div class="win-title">User_Profile.sys</div>
             <div class="win-controls"><div class="win-btn close" onclick="closeWindow('win-profile')"></div></div>
         </div>
-        <div class="win-body" style="padding:20px; text-align:center;">
+        <div class="win-body" style="padding:20px; text-align:center; color:white; overflow-y:auto;">
             <img src="https://github.com/identicons/taha.png" style="width:100px; border-radius:50%; border:2px solid var(--accent);">
             <h2 style="margin:10px 0;">Taha Atlagh</h2>
             <p style="color:var(--muted); font-size:0.9rem;">M.Sc. Mathematics @ TU Berlin</p>
@@ -225,22 +182,20 @@
                 <div>[OK] Numerical Analysis (Grade 1.0)</div>
                 <div>[OK] Python (Pandas, NumPy, LightGBM)</div>
                 <div>[OK] C++ & MATLAB</div>
-                <div>[OK] High Performance Computing</div>
                 <br>
                 <div style="color:var(--accent);">>> EXPERIENCE:</div>
                 <div>* Consultant @ Company Consulting Team</div>
                 <div>* Research Assistant @ IGPM RWTH</div>
-                <div>* Founder @ A&T Websolutions</div>
             </div>
         </div>
     </div>
 
-    <div id="win-terminal" class="window" style="width: 600px; height: 350px; left: 250px; top: 300px;">
+    <div id="win-terminal" class="window" style="width: 600px; height: 350px; left: 300px; top: 300px;">
         <div class="win-header" onmousedown="dragStart(event, 'win-terminal')">
             <div class="win-title">root@taha: ~</div>
             <div class="win-controls"><div class="win-btn close" onclick="closeWindow('win-terminal')"></div></div>
         </div>
-        <div class="win-body" style="padding:10px; font-family:var(--font-mono); font-size:0.9rem;">
+        <div class="win-body" style="padding:10px; font-family:var(--font-mono); font-size:0.9rem; overflow-y:auto;">
             <div style="margin-bottom:10px;">
                 Welcome to TahaOS v4.0 <span style="color:var(--green)">[Stable]</span><br>
                 Type 'help' for commands.
@@ -285,19 +240,19 @@
         let zIndex = 10;
         function openWindow(id) {
             const win = document.getElementById('win-' + id);
+            if(!win) return;
             win.classList.add('open');
             win.classList.add('active');
             win.style.zIndex = ++zIndex;
-            
-            // Compiler Effect for Hull
-            if(id === 'hull') {
-                const overlay = document.getElementById('compiler-overlay');
-                overlay.style.display = 'flex';
-                setTimeout(() => { overlay.style.display = 'none'; }, 1500);
-            }
         }
         function closeWindow(id) {
             document.getElementById(id).classList.remove('open');
+            const iframe = document.getElementById(id).querySelector('iframe');
+            if (iframe) {
+                // Reload iframe to reset position/zoom when closed
+                const src = iframe.src;
+                iframe.src = src;
+            }
         }
         
         // --- DRAG LOGIC ---
@@ -325,11 +280,9 @@
             document.removeEventListener('mouseup', dragEnd);
         }
 
-        // --- TABS ---
+        // --- TABS (Legacy support for Hull) ---
         window.switchTab = function(tabId) {
-            document.getElementById('hull-paper').style.display = 'none';
-            document.getElementById('hull-code').style.display = 'none';
-            document.getElementById(tabId).style.display = 'block';
+            // Simple toggle if needed
         }
 
         // --- TERMINAL ---
@@ -339,11 +292,31 @@
             if(e.key === 'Enter') {
                 const cmd = termInput.value.toLowerCase().trim();
                 termOutput.innerHTML += `<div><span style="color:#10b981">➜</span> ${cmd}</div>`;
-                if(cmd === 'ls') termOutput.innerHTML += `<div>cv.pdf  thesis_rlrk.pdf  hull_tactical.py</div>`;
-                else if(cmd === 'help') termOutput.innerHTML += `<div>Available: ls, cat [file], clear, whoami</div>`;
-                else if(cmd === 'whoami') termOutput.innerHTML += `<div>root (Taha Atlagh)</div>`;
-                else if(cmd === 'clear') termOutput.innerHTML = '';
-                else termOutput.innerHTML += `<div style="color:#ef4444">Command not found</div>`;
+                
+                if(cmd === 'ls') {
+                    termOutput.innerHTML += `<div>cv.pdf  thesis_rlrk.pdf  hull_tactical.py</div>`;
+                }
+                else if(cmd === 'help') {
+                    termOutput.innerHTML += `<div>Available: ls, cat [file], clear, whoami</div>`;
+                }
+                else if(cmd === 'whoami') {
+                    termOutput.innerHTML += `<div>root (Taha Atlagh)</div>`;
+                }
+                else if(cmd === 'clear') {
+                    termOutput.innerHTML = '';
+                }
+                // NEU: Befehle zum Öffnen der PDFs
+                else if(cmd === 'cat cv.pdf' || cmd === 'open cv.pdf') {
+                    openWindow('cv');
+                    termOutput.innerHTML += `<div>Opening cv.pdf module...</div>`;
+                }
+                else if(cmd === 'cat thesis_rlrk.pdf' || cmd === 'open thesis_rlrk.pdf') {
+                    openWindow('thesis');
+                    termOutput.innerHTML += `<div>Opening Research Thesis...</div>`;
+                }
+                else {
+                    termOutput.innerHTML += `<div style="color:#ef4444">Command not found: ${cmd}</div>`;
+                }
                 termInput.value = '';
                 termInput.scrollIntoView();
             }
@@ -354,13 +327,11 @@
             const book = document.getElementById('order-book');
             function update() {
                 let html = '';
-                // Asks
                 for(let i=0; i<5; i++) {
                     const width = Math.floor(Math.random() * 80) + 10;
                     html += `<div class="order-row"><span style="color:#ef4444">${(100.5 + i*0.1).toFixed(2)}</span><div class="ask-bar" style="width:${width}px"></div></div>`;
                 }
                 html += `<div style="border-top:1px dashed #333; margin:2px 0;"></div>`;
-                // Bids
                 for(let i=0; i<5; i++) {
                     const width = Math.floor(Math.random() * 80) + 10;
                     html += `<div class="order-row"><span style="color:#10b981">${(100.4 - i*0.1).toFixed(2)}</span><div class="bid-bar" style="width:${width}px"></div></div>`;
@@ -393,7 +364,6 @@
             requestAnimationFrame(drawLorenz);
         }
         drawLorenz();
-
     </script>
 </body>
 </html>
