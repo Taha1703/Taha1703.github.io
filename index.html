@@ -22,6 +22,17 @@
         * { box-sizing: border-box; }
         body { margin: 0; background: var(--bg); color: var(--text); font-family: var(--font-ui); overflow: hidden; height: 100vh; user-select: none; }
 
+        /* --- BOOT SCREEN (NEW FEATURE) --- */
+        #boot-screen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #000; z-index: 9999;
+            padding: 40px; font-family: var(--font-mono); color: var(--green);
+            display: flex; flex-direction: column; justify-content: flex-start;
+            font-size: 0.9rem; line-height: 1.5;
+        }
+        .boot-line { opacity: 0; animation: fadeIn 0.1s forwards; }
+        @keyframes fadeIn { to { opacity: 1; } }
+
         /* --- BACKGROUND --- */
         canvas#bg-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; opacity: 0.4; }
 
@@ -55,13 +66,12 @@
         .win-btn { width: 12px; height: 12px; border-radius: 50%; cursor: pointer; }
         .close { background: var(--red); } .min { background: var(--yellow); } .max { background: var(--green); }
         
-        /* Download Link Style in Header */
         .dl-link { color: var(--accent); text-decoration: none; font-size: 0.75rem; border: 1px solid var(--border); padding: 2px 6px; border-radius: 4px; transition: 0.2s;}
         .dl-link:hover { background: var(--accent); color: white; }
 
         .win-body { flex: 1; overflow: hidden; position: relative; }
 
-        /* --- IFRAME FOR  --- */
+        /* --- IFRAME --- */
         iframe { width: 100%; height: 100%; border: none; background: #fff; }
 
         /* --- CODE VIEWER --- */
@@ -88,9 +98,15 @@
         }
         .start-btn { background: var(--accent); color: #fff; padding: 2px 8px; border-radius: 3px; font-weight: bold; margin-right: 15px; }
         .ticker { flex: 1; overflow: hidden; white-space: nowrap; color: var(--muted); }
+        
+        /* Typing Cursor */
+        .cursor::after { content: '█'; animation: blink 1s infinite; color: var(--green); margin-left: 2px;}
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
     </style>
 </head>
 <body>
+
+    <div id="boot-screen"></div>
 
     <canvas id="bg-canvas"></canvas>
 
@@ -115,13 +131,13 @@
     <div id="win-cv" class="window" style="width: 700px; height: 800px; left: 120px; top: 40px;">
         <div class="win-header" onmousedown="dragStart(event, 'win-cv')">
             <div class="win-title">
-                cv.pdf [Read-Only]
-                <a href="cv.pdf" download class="dl-link">⬇ Save</a>
+                cv_tahaatl-12.pdf [Read-Only]
+                <a href="cv_tahaatl-12.pdf" download class="dl-link">⬇ Save</a>
             </div>
             <div class="win-controls"><div class="win-btn close" onclick="closeWindow('win-cv')"></div></div>
         </div>
         <div class="win-body">
-            <iframe src="cv.pdf"></iframe>
+            <iframe src="cv_tahaatl-12.pdf"></iframe>
         </div>
     </div>
 
@@ -196,14 +212,11 @@
             <div class="win-controls"><div class="win-btn close" onclick="closeWindow('win-terminal')"></div></div>
         </div>
         <div class="win-body" style="padding:10px; font-family:var(--font-mono); font-size:0.9rem; overflow-y:auto;">
-            <div style="margin-bottom:10px;">
-                Welcome to TahaOS v4.0 <span style="color:var(--green)">[Stable]</span><br>
-                Type 'help' for commands.
-            </div>
+            <div style="margin-bottom:10px;" id="term-intro"></div>
             <div id="term-output"></div>
             <div style="display:flex;">
                 <span style="color:var(--green); margin-right:10px;">➜</span>
-                <input id="cmd-input" type="text" style="background:none; border:none; color:var(--text); flex:1; outline:none; font-family:inherit;">
+                <input id="cmd-input" type="text" class="cursor" style="background:none; border:none; color:var(--text); flex:1; outline:none; font-family:inherit;">
             </div>
         </div>
     </div>
@@ -225,12 +238,41 @@
     </div>
 
     <script>
-        // --- BOOT & CLOCK ---
-        setTimeout(() => { 
-            openWindow('terminal'); 
-            simulateMarket();
-        }, 500);
+        // --- BOOT SEQUENCE (NEW FEATURE) ---
+        const bootScreen = document.getElementById('boot-screen');
+        const bootLines = [
+            "[OK] Loading Kernel v4.0.2...",
+            "[OK] Mounting /dev/sda1 (Portfolio_Drive)...",
+            "[OK] Initializing Quant_Lib (NumPy, SciPy, Torch)...",
+            "[OK] Connecting to Market Data Feed...",
+            "[OK] Loading User Profile: Taha Atlagh...",
+            "[SUCCESS] System Ready. Starting Desktop Environment..."
+        ];
+
+        let lineIndex = 0;
+        function runBoot() {
+            if (lineIndex < bootLines.length) {
+                const div = document.createElement('div');
+                div.className = 'boot-line';
+                div.innerText = bootLines[lineIndex];
+                bootScreen.appendChild(div);
+                lineIndex++;
+                setTimeout(runBoot, 300); // Speed of boot lines
+            } else {
+                setTimeout(() => {
+                    bootScreen.style.opacity = 0;
+                    setTimeout(() => { 
+                        bootScreen.style.display = 'none'; 
+                        openWindow('terminal'); // Open terminal after boot
+                        simulateMarket();
+                    }, 500);
+                }, 800);
+            }
+        }
         
+        // Start Boot on Load
+        window.onload = runBoot;
+
         setInterval(() => {
             const now = new Date();
             document.getElementById('clock').innerText = now.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
@@ -244,15 +286,31 @@
             win.classList.add('open');
             win.classList.add('active');
             win.style.zIndex = ++zIndex;
+
+            // Trigger typing effect if terminal opens
+            if (id === 'terminal' && document.getElementById('term-intro').innerHTML === '') {
+                typeWriter("Welcome to TahaOS v4.0 [Stable]\nType 'help' for commands.", document.getElementById('term-intro'));
+            }
         }
         function closeWindow(id) {
             document.getElementById(id).classList.remove('open');
+            // Reset iframe to fix PDF display bugs on reopen
             const iframe = document.getElementById(id).querySelector('iframe');
-            if (iframe) {
-                // Reload iframe to reset position/zoom when closed
-                const src = iframe.src;
-                iframe.src = src;
+            if (iframe) iframe.src = iframe.src;
+        }
+        
+        // --- TYPEWRITER EFFECT (NEW FEATURE) ---
+        function typeWriter(text, element) {
+            let i = 0;
+            element.innerHTML = '';
+            function type() {
+                if (i < text.length) {
+                    element.innerHTML += text.charAt(i) === '\n' ? '<br>' : text.charAt(i);
+                    i++;
+                    setTimeout(type, 30);
+                }
             }
+            type();
         }
         
         // --- DRAG LOGIC ---
@@ -280,10 +338,7 @@
             document.removeEventListener('mouseup', dragEnd);
         }
 
-        // --- TABS (Legacy support for Hull) ---
-        window.switchTab = function(tabId) {
-            // Simple toggle if needed
-        }
+        window.switchTab = function(tabId) {} // Legacy placeholder
 
         // --- TERMINAL ---
         const termInput = document.getElementById('cmd-input');
@@ -294,7 +349,7 @@
                 termOutput.innerHTML += `<div><span style="color:#10b981">➜</span> ${cmd}</div>`;
                 
                 if(cmd === 'ls') {
-                    termOutput.innerHTML += `<div>cv.pdf  thesis_rlrk.pdf  hull_tactical.py</div>`;
+                    termOutput.innerHTML += `<div>cv_tahaatl-12.pdf  thesis_rlrk.pdf  hull_tactical.py</div>`;
                 }
                 else if(cmd === 'help') {
                     termOutput.innerHTML += `<div>Available: ls, cat [file], clear, whoami</div>`;
@@ -305,12 +360,11 @@
                 else if(cmd === 'clear') {
                     termOutput.innerHTML = '';
                 }
-                // NEU: Befehle zum Öffnen der PDFs
-                else if(cmd === 'cat cv.pdf' || cmd === 'open cv.pdf') {
+                else if(cmd.includes('cv') && (cmd.startsWith('cat') || cmd.startsWith('open'))) {
                     openWindow('cv');
-                    termOutput.innerHTML += `<div>Opening cv.pdf module...</div>`;
+                    termOutput.innerHTML += `<div>Opening cv module...</div>`;
                 }
-                else if(cmd === 'cat thesis_rlrk.pdf' || cmd === 'open thesis_rlrk.pdf') {
+                else if(cmd.includes('thesis') && (cmd.startsWith('cat') || cmd.startsWith('open'))) {
                     openWindow('thesis');
                     termOutput.innerHTML += `<div>Opening Research Thesis...</div>`;
                 }
